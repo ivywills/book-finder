@@ -1,4 +1,3 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -10,7 +9,7 @@ import { FaSearch, FaHeart } from "react-icons/fa";
 export default function SearchBar() {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchInput, setSearchInput] = useState("");
-  const [books, setBooks] = useState<{ title: string; author: string }[]>([]);
+  const [books, setBooks] = useState([]);
   const [loading, setLoading] = useState(false);
   const [likedBooks, setLikedBooks] = useState<{ [key: number]: boolean }>({});
 
@@ -29,7 +28,7 @@ export default function SearchBar() {
     }));
   };
 
-  useEffect(() => {
+  const fetchBooks = () => {
     if (searchInput) {
       setLoading(true);
       axios
@@ -51,9 +50,15 @@ export default function SearchBar() {
     } else {
       setBooks([]);
     }
-  }, [searchInput]);
+  };
 
-  const filteredBooks = books.slice(0, 8);
+  const handleKeyPress = (event: React.KeyboardEvent<HTMLInputElement>) => {
+    if (event.key === "Enter") {
+      fetchBooks();
+    }
+  };
+
+  const filteredBooks = books.slice(0, 5); // Limit to 5 books
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-8 pb-20 gap-4 sm:p-20 font-[family-name:var(--font-geist-sans)] bg-neutral-300 dark:bg-neutral-700">
@@ -76,6 +81,7 @@ export default function SearchBar() {
             className="w-full p-2 pl-10 border border-gray-300 rounded"
             onClick={handleSearchClick}
             onChange={handleInputChange}
+            onKeyPress={handleKeyPress}
             value={searchInput}
           />
           <FaSearch className="absolute left-3 top-3 text-gray-400" />
@@ -90,12 +96,12 @@ export default function SearchBar() {
                       key={index}
                       className="p-2 border-b border-gray-300 flex justify-between items-center"
                     >
-                      <div>
+                      <div className="flex-none">
                         <strong>{book.title}</strong>
                         <div className="text-sm text-gray-500">{book.author}</div>
                       </div>
                       <FaHeart
-                        className={`cursor-pointer shrink-0 ${
+                        className={`cursor-pointer flex-none ${
                           likedBooks[index] ? "text-pink-500" : "text-gray-400"
                         }`}
                         onClick={() => handleHeartClick(index)}
