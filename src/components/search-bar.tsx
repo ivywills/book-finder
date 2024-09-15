@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 "use client";
 
 import { useState, useEffect } from "react";
@@ -9,7 +10,7 @@ import { FaSearch, FaHeart } from "react-icons/fa";
 export default function SearchBar() {
   const [isSearchActive, setIsSearchActive] = useState(false);
   const [searchInput, setSearchInput] = useState("");
-  const [books, setBooks] = useState([]);
+  const [books, setBooks] = useState<{ title: string; author: string }[]>([]);
   const [loading, setLoading] = useState(false);
   const [likedBooks, setLikedBooks] = useState<{ [key: number]: boolean }>({});
 
@@ -34,10 +35,12 @@ export default function SearchBar() {
       axios
         .get(`https://openlibrary.org/search.json?q=${searchInput}`)
         .then((response) => {
-          const fetchedBooks = response.data.docs.map((doc) => ({
-            title: doc.title,
-            author: doc.author_name ? doc.author_name.join(", ") : "Unknown Author",
-          }));
+          const fetchedBooks = response.data.docs.map(
+            (doc: { title: any; author_name: any[] }) => ({
+              title: doc.title,
+              author: doc.author_name ? doc.author_name.join(", ") : "Unknown Author",
+            })
+          );
           setBooks(fetchedBooks);
           setLoading(false);
         })
