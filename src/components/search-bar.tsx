@@ -1,6 +1,7 @@
+
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import axios from "axios";
 import Image from "next/image";
 import Book from "../app/books.png";
@@ -35,7 +36,7 @@ export default function SearchBar() {
         .get(`https://openlibrary.org/search.json?q=${searchInput}`)
         .then((response) => {
           const fetchedBooks = response.data.docs.map(
-            (doc: { title: any; author_name: any[] }) => ({
+            (doc: { title: string; author_name: string[] }) => ({
               title: doc.title,
               author: doc.author_name ? doc.author_name.join(", ") : "Unknown Author",
             })
@@ -58,7 +59,10 @@ export default function SearchBar() {
     }
   };
 
-  const filteredBooks = books.slice(0, 5); // Limit to 5 books
+  const filteredBooks : {
+    title: string,
+    author: string,
+  }[]  = books.slice(0, 5); // Limit to 5 books
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-8 pb-20 gap-4 sm:p-20 font-[family-name:var(--font-geist-sans)] bg-neutral-300 dark:bg-neutral-700">

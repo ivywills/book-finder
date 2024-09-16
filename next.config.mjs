@@ -4,7 +4,6 @@ const nextConfig = {
   images: {
     unoptimized: true,
   },
-  output: 'export',
   env: {
     openAPI: process.env.OPEN_API_KEY,
   },

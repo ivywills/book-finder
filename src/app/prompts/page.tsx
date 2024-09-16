@@ -5,7 +5,7 @@ import { generatePrompts } from '../../actions/open-ai'; // Adjust the import pa
 
 const HomePage = () => {
     const [prompt, setPrompt] = useState('');
-    const [books, setBooks] = useState<{ name: string; author: string; isbn: string; }[] | null>(null);
+    const [result, setResult] = useState<{ books: { name: string; author: string; isbn: string; }[]} | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -16,7 +16,7 @@ const HomePage = () => {
         try {
             const result = await generatePrompts(prompt);
             if (result) {
-                setBooks(result.books);
+                setResult(result);
             }
         } catch (err) {
             setError('Failed to generate prompt');
@@ -44,11 +44,11 @@ const HomePage = () => {
                     {loading ? 'Generating...' : 'Generate'}
                 </button>
             </form>
-            {books && (
+            {result && (
                 <div style={{ marginTop: '20px' }}>
                     <h2>Response:</h2>
                     <ul>
-                {books.map((book) => (
+                {result.books.map((book) => (
                     <li key={book.isbn}>
                         <strong>{book.name}</strong> by {book.author} (ISBN: {book.isbn})
                     </li>
