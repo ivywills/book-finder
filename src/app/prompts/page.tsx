@@ -1,7 +1,7 @@
 "use client";
 
 import { useState } from 'react';
-import { generatePrompts } from '../../actions/open-ai'; // Adjust the import path as needed
+import { generatePrompts } from '../../actions/open-ai'; 
 
 const HomePage = () => {
     const [prompt, setPrompt] = useState('');
