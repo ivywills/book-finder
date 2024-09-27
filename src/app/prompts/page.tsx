@@ -5,7 +5,7 @@ import { generatePrompts } from '../../actions/open-ai';
 
 const HomePage = () => {
     const [prompt, setPrompt] = useState('');
-    const [result, setResult] = useState<{ books: { name: string; author: string; isbn: string; }[]} | null>(null);
+    const [result, setResult] = useState<{ books: { name: string; author: string; isbn: string; image: string | null; }[]} | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -16,7 +16,12 @@ const HomePage = () => {
         try {
             const result = await generatePrompts(prompt);
             if (result) {
-                setResult(result);
+                const booksWithImages = await Promise.all(result.books.map(async (book) => {
+                    const imageUrl = book.isbn ? `https://covers.openlibrary.org/b/isbn/${book.isbn}-M.jpg` : null;
+                    return { ...book, image: imageUrl };
+                }));
+                const filteredBooks = booksWithImages.filter(book => book.image).slice(0, 5);
+                setResult({ books: filteredBooks });
             }
         } catch (err) {
             setError('Failed to generate prompt');
@@ -48,12 +53,17 @@ const HomePage = () => {
                 <div style={{ marginTop: '20px' }}>
                     <h2>Response:</h2>
                     <ul>
-                {result.books.map((book) => (
-                    <li key={book.isbn}>
-                        <strong>{book.name}</strong> by {book.author} (ISBN: {book.isbn})
-                    </li>
-                ))}
-            </ul>
+                        {result.books.map((book) => (
+                            <li key={book.isbn} style={{ marginBottom: '20px' }}>
+                                {book.image && (
+                                    <img src={book.image} alt={`${book.name} cover`} style={{ width: '100px', height: '150px', marginRight: '10px' }} />
+                                )}
+                                <div>
+                                    <strong>{book.name}</strong> by {book.author} (ISBN: {book.isbn})
+                                </div>
+                            </li>
+                        ))}
+                    </ul>
                 </div>
             )}
             {error && (
