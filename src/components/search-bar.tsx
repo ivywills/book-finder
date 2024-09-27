@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from "react";
@@ -36,9 +35,10 @@ export default function SearchBar() {
         .get(`https://openlibrary.org/search.json?q=${searchInput}`)
         .then((response) => {
           const fetchedBooks = response.data.docs.map(
-            (doc: { title: string; author_name: string[] }) => ({
+            (doc: { title: string; author_name: string[]; isbn: string[] }) => ({
               title: doc.title,
               author: doc.author_name ? doc.author_name.join(", ") : "Unknown Author",
+              coverUrl: doc.isbn ? `https://covers.openlibrary.org/b/isbn/${doc.isbn[0]}-S.jpg` : null,
             })
           );
           setBooks(fetchedBooks);
@@ -59,10 +59,11 @@ export default function SearchBar() {
     }
   };
 
-  const filteredBooks : {
-    title: string,
-    author: string,
-  }[]  = books.slice(0, 5); // Limit to 5 books
+  const filteredBooks: {
+    title: string;
+    author: string;
+    coverUrl: string | null;
+  }[] = books.slice(0, 5); // Limit to 5 books
 
   return (
     <div className="flex flex-col items-center justify-center min-h-screen p-8 pb-20 gap-4 sm:p-20 font-[family-name:var(--font-geist-sans)] bg-neutral-300 dark:bg-neutral-700">
@@ -100,9 +101,18 @@ export default function SearchBar() {
                       key={index}
                       className="p-2 border-b border-gray-300 flex justify-between items-center"
                     >
-                      <div className="flex-none">
-                        <strong>{book.title}</strong>
-                        <div className="text-sm text-gray-500">{book.author}</div>
+                      <div className="flex items-center">
+                        {book.coverUrl && (
+                          <img
+                            src={book.coverUrl}
+                            alt={`${book.title} cover`}
+                            className="w-12 h-16 mr-4"
+                          />
+                        )}
+                        <div>
+                          <strong>{book.title}</strong>
+                          <div className="text-sm text-gray-500">{book.author}</div>
+                        </div>
                       </div>
                       <FaHeart
                         className={`cursor-pointer flex-none ${
