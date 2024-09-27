@@ -90,46 +90,37 @@ export default function SearchBar() {
             value={searchInput}
           />
           <FaSearch className="absolute left-3 top-3 text-gray-400" />
-          {isSearchActive && searchInput && (
-            <div className="absolute left-0 right-0 mt-1 bg-white border border-gray-300 rounded shadow-lg z-10">
-              {loading ? (
-                <div className="p-2 text-gray-500">Loading...</div>
-              ) : filteredBooks.length > 0 ? (
-                <ul>
-                  {filteredBooks.map((book, index) => (
-                    <li
-                      key={index}
-                      className="p-2 border-b border-gray-300 flex justify-between items-center"
-                    >
-                      <div className="flex items-center">
-                        {book.coverUrl && (
-                          <img
-                            src={book.coverUrl}
-                            alt={`${book.title} cover`}
-                            className="w-12 h-16 mr-4"
-                          />
-                        )}
-                        <div>
-                          <strong>{book.title}</strong>
-                          <div className="text-sm text-gray-500">{book.author}</div>
-                        </div>
-                      </div>
-                      <FaHeart
-                        className={`cursor-pointer flex-none ${
-                          likedBooks[index] ? "text-pink-500" : "text-gray-400"
-                        }`}
-                        onClick={() => handleHeartClick(index)}
-                      />
-                    </li>
-                  ))}
-                </ul>
-              ) : (
-                <div className="p-2 text-gray-500">No books found</div>
-              )}
-            </div>
-          )}
         </div>
       </div>
+      {loading ? (
+        <div className="p-2 text-gray-500">Loading...</div>
+      ) : filteredBooks.length > 0 ? (
+        <div className="flex flex-wrap justify-center mt-4">
+          {filteredBooks.map((book, index) => (
+            <div key={index} className="p-2 m-2 border border-gray-300 rounded flex flex-col items-center">
+              {book.coverUrl && (
+                <img
+                  src={book.coverUrl}
+                  alt={`${book.title} cover`}
+                  className="w-24 h-32 mb-2"
+                />
+              )}
+              <div className="text-center">
+                <strong>{book.title}</strong>
+                <div className="text-sm text-gray-500">{book.author}</div>
+              </div>
+              <FaHeart
+                className={`cursor-pointer mt-2 ${
+                  likedBooks[index] ? "text-pink-500" : "text-gray-400"
+                }`}
+                onClick={() => handleHeartClick(index)}
+              />
+            </div>
+          ))}
+        </div>
+      ) : (
+        <div className="p-2 text-gray-500">No books found</div>
+      )}
     </div>
   );
 }
