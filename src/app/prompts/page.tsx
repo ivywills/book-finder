@@ -3,9 +3,16 @@
 import { useState } from 'react';
 import { generatePrompts } from '../../actions/open-ai'; 
 
+interface Book {
+    name: string;
+    author: string;
+    isbn: string;
+    image: string | null;
+}
+
 const HomePage = () => {
     const [prompt, setPrompt] = useState('');
-    const [result, setResult] = useState<{ books: { name: string; author: string; isbn: string; image: string | null; }[]} | null>(null);
+    const [result, setResult] = useState<{ books: Book[] } | null>(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -18,9 +25,31 @@ const HomePage = () => {
             if (result) {
                 const booksWithImages = await Promise.all(result.books.map(async (book) => {
                     const imageUrl = book.isbn ? `https://covers.openlibrary.org/b/isbn/${book.isbn}-M.jpg` : null;
-                    return { ...book, image: imageUrl };
+                    if (imageUrl) {
+                        const response = await fetch(imageUrl);
+                        if (response.ok) {
+                            const blob = await response.blob();
+                            const image = new Image();
+                            const imageLoadPromise = new Promise<Book | null>((resolve) => {
+                                image.onload = () => {
+                                    if (image.width >= 100 && image.height >= 150) {
+                                        resolve({ ...book, image: imageUrl });
+                                    } else {
+                                        resolve(null);
+                                    }
+                                };
+                                image.onerror = () => resolve(null);
+                            });
+                            image.src = URL.createObjectURL(blob);
+                            const result = await imageLoadPromise;
+                            if (result) {
+                                return result;
+                            }
+                        }
+                    }
+                    return { ...book, image: null };
                 }));
-                const filteredBooks = booksWithImages.filter(book => book.image).slice(0, 5);
+                const filteredBooks = booksWithImages.filter((book): book is Book => book.image !== null).slice(0, 5);
                 setResult({ books: filteredBooks });
             }
         } catch (err) {
@@ -54,14 +83,14 @@ const HomePage = () => {
                     <h2>Response:</h2>
                     <ul>
                         {result.books.map((book) => (
-                            <li key={book.isbn} style={{ marginBottom: '20px' }}>
-                                {book.image && (
+                            book.image && (
+                                <li key={book.isbn} style={{ marginBottom: '20px' }}>
                                     <img src={book.image} alt={`${book.name} cover`} style={{ width: '100px', height: '150px', marginRight: '10px' }} />
-                                )}
-                                <div>
-                                    <strong>{book.name}</strong> by {book.author} (ISBN: {book.isbn})
-                                </div>
-                            </li>
+                                    <div>
+                                        <strong>{book.name}</strong> by {book.author} (ISBN: {book.isbn})
+                                    </div>
+                                </li>
+                            )
                         ))}
                     </ul>
                 </div>
