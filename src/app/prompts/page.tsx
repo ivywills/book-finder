@@ -67,9 +67,9 @@ const HomePage = () => {
         <div style={{ maxWidth: '600px', margin: 'auto', padding: '20px' }}>
             {user && 
                 <div style={{ marginBottom: '20px' }}>
-                    <h2>Welcome, {user.emailAddresses[0].emailAddress}!</h2>
+                    <h2>Welcome, ${user.emailAddresses[0].emailAddress}!</h2>
                 </div>
-            )}
+            }
             <h1>Prompt Generator</h1>
             <form onSubmit={handleSubmit}>
                 <div>
