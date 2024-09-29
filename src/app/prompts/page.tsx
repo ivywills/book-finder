@@ -13,7 +13,6 @@ interface Book {
 
 const HomePage = () => {
     const { user } = useUser();
-    console.log(user);
     const [prompt, setPrompt] = useState('');
     const [result, setResult] = useState<{ books: Book[] } | null>(null);
     const [loading, setLoading] = useState(false);
@@ -52,7 +51,7 @@ const HomePage = () => {
                     }
                     return { ...book, image: null };
                 }));
-                const filteredBooks = booksWithImages.filter((book): book is Book => book.image !== null).slice(0, 5);
+                const filteredBooks = booksWithImages.filter((book): book is Book => book.image !== null).slice(0, 20);
                 setResult({ books: filteredBooks });
             }
         } catch (err) {
@@ -67,7 +66,7 @@ const HomePage = () => {
         <div style={{ maxWidth: '600px', margin: 'auto', padding: '20px' }}>
             {user && 
                 <div style={{ marginBottom: '20px' }}>
-                    <h2>Welcome, ${user.emailAddresses[0].emailAddress}!</h2>
+                    <h2>Welcome, {user.emailAddresses[0].emailAddress}!</h2>
                 </div>
             }
             <h1>Prompt Generator</h1>

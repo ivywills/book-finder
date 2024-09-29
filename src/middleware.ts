@@ -6,8 +6,6 @@ const isProtectedRoute = createRouteMatcher(['/suggestions(.*)']);
 export default clerkMiddleware((auth, req) => {
   if (isProtectedRoute(req)) {
     auth().protect();
-    // Redirect to the prompts page after successful sign-in
-    return NextResponse.redirect('/prompts');
   }
 });
 
