@@ -1,7 +1,8 @@
 "use client";
 
 import { useState } from 'react';
-import { generatePrompts } from '../../actions/open-ai'; 
+import { generatePrompts } from '../../actions/open-ai';
+import { useUser } from '@clerk/nextjs';
 
 interface Book {
     name: string;
@@ -11,6 +12,7 @@ interface Book {
 }
 
 const HomePage = () => {
+    const { user } = useUser();
     const [prompt, setPrompt] = useState('');
     const [result, setResult] = useState<{ books: Book[] } | null>(null);
     const [loading, setLoading] = useState(false);
@@ -62,6 +64,11 @@ const HomePage = () => {
 
     return (
         <div style={{ maxWidth: '600px', margin: 'auto', padding: '20px' }}>
+            {user && (
+                <div style={{ marginBottom: '20px' }}>
+                    <h2>Welcome, {user.firstName}!</h2>
+                </div>
+            )}
             <h1>Prompt Generator</h1>
             <form onSubmit={handleSubmit}>
                 <div>

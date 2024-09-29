@@ -1,10 +1,15 @@
-import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server'
+import { clerkMiddleware, createRouteMatcher } from '@clerk/nextjs/server';
+import { NextResponse } from 'next/server';
 
-const isProtectedRoute = createRouteMatcher(['/suggestions(.*)'])
+const isProtectedRoute = createRouteMatcher(['/suggestions(.*)']);
 
 export default clerkMiddleware((auth, req) => {
-  if (isProtectedRoute(req)) auth().protect()
-}, { debug: true})
+  if (isProtectedRoute(req)) {
+    auth().protect();
+    // Redirect to the prompts page after successful sign-in
+    return NextResponse.redirect('/prompts');
+  }
+});
 
 export const config = {
   matcher: [

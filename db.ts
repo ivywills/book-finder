@@ -1,12 +1,20 @@
-// // db.ts
-// import { MongoClient } from 'mongodb';
+// db.ts
+import { MongoClient } from 'mongodb';
 
-// const uri = process.env.MONGODB_URI;
-// const client = new MongoClient(uri);
+const uri = process.env.MONGODB_URI;
+console.log(uri);
+if (!uri) {
+  throw new Error('MONGODB_URI is not defined');
+}
+const client = new MongoClient(uri);
+let isConnected = false;
 
-// async function connectToDatabase() {
-//   if (!client.isConnected()) await client.connect();
-//   return client.db('your-database-name');
-// }
+async function connectToDatabase() {
+  if (!isConnected) {
+    await client.connect();
+    isConnected = true;
+  }
+  return client.db('bookfinder');
+}
 
-// export default connectToDatabase;
+export default connectToDatabase;
