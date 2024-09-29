@@ -13,6 +13,7 @@ interface Book {
 
 const HomePage = () => {
     const { user } = useUser();
+    console.log(user);
     const [prompt, setPrompt] = useState('');
     const [result, setResult] = useState<{ books: Book[] } | null>(null);
     const [loading, setLoading] = useState(false);
@@ -64,9 +65,9 @@ const HomePage = () => {
 
     return (
         <div style={{ maxWidth: '600px', margin: 'auto', padding: '20px' }}>
-            {user && (
+            {user && 
                 <div style={{ marginBottom: '20px' }}>
-                    <h2>Welcome, {user.firstName}!</h2>
+                    <h2>Welcome, {user.emailAddresses[0].emailAddress}!</h2>
                 </div>
             )}
             <h1>Prompt Generator</h1>
