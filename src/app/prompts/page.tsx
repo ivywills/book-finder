@@ -15,6 +15,7 @@ const HomePage = () => {
     const { user } = useUser();
     const [prompt, setPrompt] = useState('');
     const [result, setResult] = useState<{ books: Book[] } | null>(null);
+    const [favorites, setFavorites] = useState<Book[]>([]);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -62,6 +63,10 @@ const HomePage = () => {
         }
     };
 
+    const addToFavorites = (book: Book) => {
+        setFavorites((prevFavorites) => [...prevFavorites, book]);
+    };
+
     return (
         <div style={{ maxWidth: '600px', margin: 'auto', padding: '20px' }}>
             {user && 
@@ -95,9 +100,25 @@ const HomePage = () => {
                                     <img src={book.image} alt={`${book.name} cover`} style={{ width: '100px', height: '150px', marginRight: '10px' }} />
                                     <div>
                                         <strong>{book.name}</strong> by {book.author} (ISBN: {book.isbn})
+                                        <button onClick={() => addToFavorites(book)} style={{ marginLeft: '10px' }}>Add to Favorites</button>
                                     </div>
                                 </li>
                             )
+                        ))}
+                    </ul>
+                </div>
+            )}
+            {favorites.length > 0 && (
+                <div style={{ marginTop: '20px' }}>
+                    <h2>Favorites:</h2>
+                    <ul>
+                        {favorites.map((book) => (
+                            <li key={book.isbn} style={{ marginBottom: '20px' }}>
+                                <img src={book.image} alt={`${book.name} cover`} style={{ width: '100px', height: '150px', marginRight: '10px' }} />
+                                <div>
+                                    <strong>{book.name}</strong> by {book.author} (ISBN: {book.isbn})
+                                </div>
+                            </li>
                         ))}
                     </ul>
                 </div>
