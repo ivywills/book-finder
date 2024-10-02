@@ -176,13 +176,12 @@ const HomePage = () => {
           {renderCarousel(result.books, 'result-slide')}
         </div>
       )}
-      {favorites.length > 0 &&
-        +(
-          <div className="mt-5">
-            <h2>Favorites:</h2>
-            {renderCarousel(favorites, 'favorite-slide')}
-          </div>
-        )}
+      {favorites.length > 0 && (
+        <div className="mt-5">
+          <h2>Favorites:</h2>
+          {renderCarousel(favorites, 'favorite-slide')}
+        </div>
+      )}
       {error && (
         <div className="text-red-500 mt-5">
           <h2>Error:</h2>
