@@ -3,6 +3,9 @@
 import { useState } from 'react';
 import { generatePrompts } from '../../actions/open-ai';
 import { useUser } from '@clerk/nextjs';
+import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
+import { faHeart as solidHeart } from '@fortawesome/free-solid-svg-icons';
+import { faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons';
 
 interface Book {
     name: string;
@@ -64,7 +67,54 @@ const HomePage = () => {
     };
 
     const addToFavorites = (book: Book) => {
-        setFavorites((prevFavorites) => [...prevFavorites, book]);
+        setFavorites((prevFavorites) => {
+            if (prevFavorites.some(fav => fav.isbn === book.isbn)) {
+                return prevFavorites.filter(fav => fav.isbn !== book.isbn);
+            } else {
+                return [...prevFavorites, book];
+            }
+        });
+    };
+
+    const isFavorite = (book: Book) => {
+        return favorites.some(fav => fav.isbn === book.isbn);
+    };
+
+    const renderCarousel = (books: Book[], idPrefix: string) => {
+        const slides = [];
+        const itemsPerSlide = window.innerWidth < 768 ? 3 : 5; // 3 items on mobile, 5 on larger screens
+        for (let i = 0; i < books.length; i += itemsPerSlide) {
+            slides.push(books.slice(i, i + itemsPerSlide));
+        }
+
+        return (
+            <div className="carousel w-full">
+                {slides.map((slide, index) => (
+                    <div id={`${idPrefix}${index}`} className="carousel-item relative w-full flex justify-center" key={index}>
+                        {slide.map((book) => (
+                            <div key={book.isbn} className="card w-1/3 md:w-1/5 p-2 relative">
+                                <img src={book.image!} alt={`${book.name} cover`} className="w-full h-48 object-cover" />
+                                <div className="mt-2">
+                                    <strong>{book.name}</strong>
+                                    <p>{book.author}</p>
+                                </div>
+                                <button
+                                    onClick={() => addToFavorites(book)}
+                                    className="absolute top-2 right-2 text-2xl"
+                                    title="Add to Favorites"
+                                >
+                                    <FontAwesomeIcon icon={isFavorite(book) ? solidHeart : regularHeart} className={isFavorite(book) ? 'text-red-500' : 'text-white'} />
+                                </button>
+                            </div>
+                        ))}
+                        <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
+                            <a href={`#${idPrefix}${(index - 1 + slides.length) % slides.length}`} className="btn btn-circle">❮</a>
+                            <a href={`#${idPrefix}${(index + 1) % slides.length}`} className="btn btn-circle">❯</a>
+                        </div>
+                    </div>
+                ))}
+            </div>
+        );
     };
 
     return (
@@ -93,34 +143,13 @@ const HomePage = () => {
             {result && (
                 <div style={{ marginTop: '20px' }}>
                     <h2>Response:</h2>
-                    <ul>
-                        {result.books.map((book) => (
-                            book.image && (
-                                <li key={book.isbn} style={{ marginBottom: '20px' }}>
-                                    <img src={book.image} alt={`${book.name} cover`} style={{ width: '100px', height: '150px', marginRight: '10px' }} />
-                                    <div>
-                                        <strong>{book.name}</strong> by {book.author} (ISBN: {book.isbn})
-                                        <button onClick={() => addToFavorites(book)} style={{ marginLeft: '10px' }}>Add to Favorites</button>
-                                    </div>
-                                </li>
-                            )
-                        ))}
-                    </ul>
+                    {renderCarousel(result.books, 'result-slide')}
                 </div>
             )}
             {favorites.length > 0 && (
                 <div style={{ marginTop: '20px' }}>
                     <h2>Favorites:</h2>
-                    <ul>
-                        {favorites.map((book) => (
-                            <li key={book.isbn} style={{ marginBottom: '20px' }}>
-                                <img src={book.image} alt={`${book.name} cover`} style={{ width: '100px', height: '150px', marginRight: '10px' }} />
-                                <div>
-                                    <strong>{book.name}</strong> by {book.author} (ISBN: {book.isbn})
-                                </div>
-                            </li>
-                        ))}
-                    </ul>
+                    {renderCarousel(favorites, 'favorite-slide')}
                 </div>
             )}
             {error && (
