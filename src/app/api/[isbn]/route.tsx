@@ -35,6 +35,7 @@ export async function GET(req: NextRequest) {
     }
 
     const data = await response.json();
+    console.log(`Book data: ${data}`);
     const bookData = data.items?.[0]?.volumeInfo;
 
     if (!bookData) {
