@@ -3,7 +3,7 @@ import { NextRequest, NextResponse } from 'next/server';
 interface Book {
   name: string;
   author: string;
-  isbn: string;
+  isbn: string | null;
   image: string | null;
   description: string | null;
   publisher: string | null;
@@ -19,10 +19,10 @@ export async function GET(req: NextRequest) {
   console.log('Request URL:', req.url);
   console.log('ISBN:', isbn);
 
-  if (!isbn) {
-    console.error('Invalid ISBN');
-    return NextResponse.json({ error: 'Invalid ISBN' }, { status: 400 });
-  }
+  //   if (!isbn) {
+  //     console.error('Invalid ISBN');
+  //     return NextResponse.json({ error: 'Invalid ISBN' }, { status: 400 });
+  //   }
 
   try {
     console.log(`Fetching book details for ISBN: ${isbn}`);
