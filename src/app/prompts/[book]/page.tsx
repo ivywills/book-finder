@@ -26,13 +26,16 @@ const BookPage = () => {
     if (isbn) {
       const fetchBookDetails = async () => {
         try {
+          console.log(`Fetching book details for ISBN: ${isbn}`);
           const response = await fetch(`/api/${isbn}?isbn=${isbn}`);
           if (!response.ok) {
             throw new Error('Failed to fetch book details');
           }
           const data = await response.json();
+          console.log('Book details fetched successfully:', data);
           setBook(data);
         } catch (err) {
+          console.error('Error fetching book details:', err);
           setError((err as Error).message);
         } finally {
           setLoading(false);

@@ -5,6 +5,11 @@ interface Book {
   author: string;
   isbn: string;
   image: string | null;
+  description: string | null;
+  publisher: string | null;
+  publishedDate: string | null;
+  pageCount: number | null;
+  categories: string[] | null;
 }
 
 export async function GET(req: NextRequest) {
@@ -39,6 +44,11 @@ export async function GET(req: NextRequest) {
       author: bookData.authors?.[0] || 'Unknown Author',
       isbn,
       image: bookData.imageLinks?.thumbnail || null,
+      description: bookData.description || null,
+      publisher: bookData.publisher || null,
+      publishedDate: bookData.publishedDate || null,
+      pageCount: bookData.pageCount || null,
+      categories: bookData.categories || null,
     };
 
     console.log('Book details fetched successfully:', book);
