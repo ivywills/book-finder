@@ -16,6 +16,9 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const isbn = searchParams.get('isbn');
 
+  console.log('Request URL:', req.url);
+  console.log('ISBN:', isbn);
+
   if (!isbn) {
     console.error('Invalid ISBN');
     return NextResponse.json({ error: 'Invalid ISBN' }, { status: 400 });
