@@ -1,16 +1,19 @@
 'use client';
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { generatePrompts } from '../../actions/open-ai';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart as solidHeart } from '@fortawesome/free-solid-svg-icons';
 import { faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons';
+import defaultCover from '../default-cover.jpg';
+import { StaticImageData } from 'next/image';
 
 interface Book {
   name: string;
   author: string;
   isbn: string;
-  image: string | null;
+  image: string | StaticImageData | null;
 }
 
 const HomePage = () => {
@@ -27,44 +30,51 @@ const HomePage = () => {
     try {
       const result = await generatePrompts(prompt);
       if (result) {
+        // Set the result immediately with books with default cover images
+        setResult({
+          books: result.books.map((book) => ({
+            ...book,
+            image: defaultCover.src,
+          })),
+        });
+
+        // Fetch images asynchronously
         const booksWithImages = await Promise.all(
           result.books.map(async (book) => {
-            const imageUrl = book.isbn
-              ? `https://covers.openlibrary.org/b/isbn/${book.isbn}-M.jpg`
+            const apiUrl = book.isbn
+              ? `https://www.googleapis.com/books/v1/volumes?q=isbn:${book.isbn}`
               : null;
-            if (imageUrl) {
-              const response = await fetch(imageUrl);
-              if (response.ok) {
-                const blob = await response.blob();
-                const image = new Image();
-                const imageLoadPromise = new Promise<Book | null>((resolve) => {
-                  image.onload = () => {
-                    if (image.width >= 100 && image.height >= 150) {
-                      resolve({ ...book, image: imageUrl });
-                    } else {
-                      resolve(null);
-                    }
-                  };
-                  image.onerror = () => resolve(null);
-                });
-                image.src = URL.createObjectURL(blob);
-                const result = await imageLoadPromise;
-                if (result) {
-                  return result;
+            if (apiUrl) {
+              try {
+                const response = await fetch(apiUrl);
+                if (response.ok) {
+                  const data = await response.json();
+                  const bookData = data.items?.[0]?.volumeInfo;
+                  if (bookData && bookData.imageLinks?.thumbnail) {
+                    return { ...book, image: bookData.imageLinks.thumbnail };
+                  } else {
+                    console.error(`No image found for ISBN: ${book.isbn}`);
+                  }
+                } else {
+                  console.error(`Failed to fetch image for ISBN: ${book.isbn}`);
                 }
+              } catch (error) {
+                console.error(
+                  `Error fetching image for ISBN: ${book.isbn}`,
+                  error
+                );
               }
             }
-            return { ...book, image: null };
+            return { ...book, image: defaultCover.src };
           })
         );
-        const filteredBooks = booksWithImages
-          .filter((book): book is Book => book.image !== null)
-          .slice(0, 20);
-        setResult({ books: filteredBooks });
+
+        // Update the result with books with images
+        setResult({ books: booksWithImages });
       }
     } catch (err) {
       setError('Failed to generate prompt');
-      console.error(err);
+      console.error('Error generating prompt:', err);
     } finally {
       setLoading(false);
     }
@@ -86,7 +96,7 @@ const HomePage = () => {
 
   const renderCarousel = (books: Book[], idPrefix: string) => {
     const slides = [];
-    const itemsPerSlide = window.innerWidth < 768 ? 3 : 5; // 3 items on mobile, 5 on larger screens
+    const itemsPerSlide = 3; // 3 items on mobile, 5 on larger screens
     for (let i = 0; i < books.length; i += itemsPerSlide) {
       slides.push(books.slice(i, i + itemsPerSlide));
     }
@@ -100,16 +110,22 @@ const HomePage = () => {
             key={index}
           >
             {slide.map((book) => (
-              <div key={book.isbn} className="card w-1/3 md:w-1/5 p-2 relative">
+              <div key={book.isbn} className="card w-1/3 p-2 relative">
                 <img
-                  src={book.image!}
+                  src={
+                    typeof book.image === 'string'
+                      ? book.image
+                      : defaultCover.src
+                  }
                   alt={`${book.name} cover`}
                   className="w-full h-48 object-cover"
                 />
-                <div className="mt-2">
-                  <strong>{book.name}</strong>
-                  <p>{book.author}</p>
-                </div>
+                <Link href={`/prompts/${book.isbn}`}>
+                  <div className="mt-2">
+                    <strong>{book.name}</strong>
+                    <p>{book.author}</p>
+                  </div>
+                </Link>
                 <button
                   onClick={() => addToFavorites(book)}
                   className="absolute top-2 right-2 text-2xl"
