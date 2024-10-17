@@ -9,6 +9,11 @@ interface Book {
   author: string;
   isbn: string;
   image: string | null;
+  description: string | null;
+  publisher: string | null;
+  publishedDate: string | null;
+  pageCount: number | null;
+  categories: string[] | null;
 }
 
 const BookPage = () => {
@@ -67,6 +72,31 @@ const BookPage = () => {
       <p>
         <strong>ISBN:</strong> {book.isbn}
       </p>
+      {book.description && (
+        <p>
+          <strong>Description:</strong> {book.description}
+        </p>
+      )}
+      {book.publisher && (
+        <p>
+          <strong>Publisher:</strong> {book.publisher}
+        </p>
+      )}
+      {book.publishedDate && (
+        <p>
+          <strong>Published Date:</strong> {book.publishedDate}
+        </p>
+      )}
+      {book.pageCount && (
+        <p>
+          <strong>Page Count:</strong> {book.pageCount}
+        </p>
+      )}
+      {book.categories && (
+        <p>
+          <strong>Categories:</strong> {book.categories.join(', ')}
+        </p>
+      )}
     </div>
   );
 };
