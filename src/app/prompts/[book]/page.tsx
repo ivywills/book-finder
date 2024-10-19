@@ -17,7 +17,8 @@ interface Book {
 }
 
 const BookPage = () => {
-  const { book: isbn } = useParams();
+  const { book: bookParam } = useParams();
+  const isbn = Array.isArray(bookParam) ? bookParam[0] : bookParam;
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
