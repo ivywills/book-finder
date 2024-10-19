@@ -18,16 +18,25 @@ export async function GET(req: NextRequest) {
 
   console.log('Request URL:', req.url);
   console.log('ISBN:', isbn);
+  console.log('Google Books API Key:', process.env.GOOGLE_BOOKS_API_KEY);
 
-  //   if (!isbn) {
-  //     console.error('Invalid ISBN');
-  //     return NextResponse.json({ error: 'Invalid ISBN' }, { status: 400 });
-  //   }
+  if (!isbn) {
+    console.error('Invalid ISBN');
+    return NextResponse.json({ error: 'Invalid ISBN' }, { status: 400 });
+  }
+
+  if (!process.env.GOOGLE_BOOKS_API_KEY) {
+    console.error('Google Books API Key is not set');
+    return NextResponse.json(
+      { error: 'Google Books API Key is not set' },
+      { status: 500 }
+    );
+  }
 
   try {
     console.log(`Fetching book details for ISBN: ${isbn}`);
     const response = await fetch(
-      `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}`
+      `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key:${process.env.GOOGLE_BOOKS_API_KEY}`
     );
     if (!response.ok) {
       console.error('Failed to fetch book details from Google Books API');
@@ -35,7 +44,7 @@ export async function GET(req: NextRequest) {
     }
 
     const data = await response.json();
-    console.log(`Book data: ${data}`);
+    console.log('Book data:', data);
     const bookData = data.items?.[0]?.volumeInfo;
 
     if (!bookData) {

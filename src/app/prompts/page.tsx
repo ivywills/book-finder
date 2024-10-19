@@ -42,7 +42,7 @@ const HomePage = () => {
         const booksWithImages = await Promise.all(
           result.books.map(async (book) => {
             const apiUrl = book.isbn
-              ? `https://www.googleapis.com/books/v1/volumes?q=isbn:${book.isbn}`
+              ? `https://www.googleapis.com/books/v1/volumes?q=isbn:${book.isbn}&key:${process.env.GOOGLE_BOOKS_API_KEY}`
               : null;
             if (apiUrl) {
               try {
