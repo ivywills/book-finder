@@ -27,13 +27,33 @@ const BookPage = () => {
       const fetchBookDetails = async () => {
         try {
           console.log(`Fetching book details for ISBN: ${isbn}`);
-          const response = await fetch(`/api/${isbn}?isbn=${isbn}`);
+          const response = await fetch(
+            `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key:${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
+          );
           if (!response.ok) {
             throw new Error('Failed to fetch book details');
           }
           const data = await response.json();
           console.log('Book details fetched successfully:', data);
-          setBook(data);
+          const bookData = data.items?.[0]?.volumeInfo;
+
+          if (!bookData) {
+            throw new Error('Book not found');
+          }
+
+          const book: Book = {
+            name: bookData.title,
+            author: bookData.authors?.[0] || 'Unknown Author',
+            isbn,
+            image: bookData.imageLinks?.thumbnail || null,
+            description: bookData.description || null,
+            publisher: bookData.publisher || null,
+            publishedDate: bookData.publishedDate || null,
+            pageCount: bookData.pageCount || null,
+            categories: bookData.categories || null,
+          };
+
+          setBook(book);
         } catch (err) {
           console.error('Error fetching book details:', err);
           setError((err as Error).message);
