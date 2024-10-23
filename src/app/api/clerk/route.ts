@@ -1,4 +1,14 @@
-import { WebhookEvent } from '@clerk/nextjs/server';
+import { WebhookEvent as ClerkWebhookEvent } from '@clerk/nextjs/server';
+
+interface AddFavoriteEvent {
+  type: 'add.favorite';
+  data: {
+    userId: string;
+    book: string;
+  };
+}
+
+type WebhookEvent = ClerkWebhookEvent | AddFavoriteEvent;
 import { MongoClient } from 'mongodb';
 
 const client = new MongoClient(process.env.MONGODB_URI!);
