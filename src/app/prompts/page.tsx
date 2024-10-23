@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
+import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import { generatePrompts } from '../../actions/open-ai';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
@@ -17,11 +18,34 @@ interface Book {
 }
 
 const HomePage = () => {
+  const { user } = useUser();
   const [prompt, setPrompt] = useState('');
   const [result, setResult] = useState<{ books: Book[] } | null>(null);
   const [favorites, setFavorites] = useState<Book[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    const fetchFavorites = async () => {
+      if (!user) return;
+
+      try {
+        const userId = user.id;
+        const response = await fetch(`/api/clerk?userId=${userId}`);
+        if (!response.ok) {
+          throw new Error('Failed to fetch favorites');
+        }
+        const data = await response.json();
+        setFavorites(data.favorites);
+        console.log('Favorite Books:', data.favorites);
+      } catch (error) {
+        console.error('Error fetching favorites:', error);
+        setError('Failed to fetch favorites');
+      }
+    };
+
+    fetchFavorites();
+  }, [user]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -80,14 +104,33 @@ const HomePage = () => {
     }
   };
 
-  const addToFavorites = (book: Book) => {
-    setFavorites((prevFavorites) => {
-      if (prevFavorites.some((fav) => fav.isbn === book.isbn)) {
-        return prevFavorites.filter((fav) => fav.isbn !== book.isbn);
-      } else {
-        return [...prevFavorites, book];
+  const addToFavorites = async (book: Book) => {
+    if (!user) return;
+
+    try {
+      const userId = user.id;
+      const response = await fetch('/api/clerk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ type: 'add.favorite', data: { userId, book } }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add favorite');
       }
-    });
+
+      setFavorites((prevFavorites) => {
+        if (prevFavorites.some((fav) => fav.isbn === book.isbn)) {
+          return prevFavorites.filter((fav) => fav.isbn !== book.isbn);
+        } else {
+          return [...prevFavorites, book];
+        }
+      });
+    } catch (error) {
+      console.error('Error adding favorite:', error);
+    }
   };
 
   const isFavorite = (book: Book) => {
