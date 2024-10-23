@@ -24,6 +24,7 @@ const HomePage = () => {
   const [favorites, setFavorites] = useState<Book[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [showArrows, setShowArrows] = useState(true);
 
   useEffect(() => {
     const fetchFavorites = async () => {
@@ -145,7 +146,11 @@ const HomePage = () => {
     }
 
     return (
-      <div className="carousel w-full">
+      <div
+        className="carousel w-full"
+        onTouchStart={() => setShowArrows(false)}
+        onTouchEnd={() => setShowArrows(true)}
+      >
         {slides.map((slide, index) => (
           <div
             id={`${idPrefix}${index}`}
@@ -181,22 +186,24 @@ const HomePage = () => {
                 </button>
               </div>
             ))}
-            <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
-              <a
-                href={`#${idPrefix}${
-                  (index - 1 + slides.length) % slides.length
-                }`}
-                className="btn btn-circle"
-              >
-                ❮
-              </a>
-              <a
-                href={`#${idPrefix}${(index + 1) % slides.length}`}
-                className="btn btn-circle"
-              >
-                ❯
-              </a>
-            </div>
+            {showArrows && (
+              <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
+                <a
+                  href={`#${idPrefix}${
+                    (index - 1 + slides.length) % slides.length
+                  }`}
+                  className="btn btn-circle"
+                >
+                  ❮
+                </a>
+                <a
+                  href={`#${idPrefix}${(index + 1) % slides.length}`}
+                  className="btn btn-circle"
+                >
+                  ❯
+                </a>
+              </div>
+            )}
           </div>
         ))}
       </div>
