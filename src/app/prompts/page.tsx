@@ -9,6 +9,7 @@ import { faHeart as solidHeart } from '@fortawesome/free-solid-svg-icons';
 import { faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons';
 import defaultCover from '../default-cover.jpg';
 import { StaticImageData } from 'next/image';
+import Cookies from 'js-cookie';
 
 interface Book {
   name: string;
@@ -49,6 +50,50 @@ const HomePage = () => {
     fetchFavorites();
   }, [user]);
 
+  useEffect(() => {
+    const fetchImages = async (books: Book[]) => {
+      const booksWithImages = await Promise.all(
+        books.map(async (book) => {
+          const apiUrl = book.isbn
+            ? `https://www.googleapis.com/books/v1/volumes?q=isbn:${book.isbn}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
+            : null;
+          if (apiUrl) {
+            try {
+              const response = await fetch(apiUrl);
+              if (response.ok) {
+                const data = await response.json();
+                const bookData = data.items?.[0]?.volumeInfo;
+                if (bookData && bookData.imageLinks?.thumbnail) {
+                  return { ...book, image: bookData.imageLinks.thumbnail };
+                } else {
+                  console.error(`No image found for ISBN: ${book.isbn}`);
+                }
+              } else {
+                console.error(`Failed to fetch image for ISBN: ${book.isbn}`);
+              }
+            } catch (error) {
+              console.error(
+                `Error fetching image for ISBN: ${book.isbn}`,
+                error
+              );
+            }
+          }
+          return { ...book, image: defaultCover.src };
+        })
+      );
+      return booksWithImages;
+    };
+
+    const savedResult = Cookies.get('result');
+    if (savedResult) {
+      const cachedResult = JSON.parse(savedResult);
+      fetchImages(cachedResult.books).then((booksWithImages) => {
+        setResult({ books: booksWithImages });
+        Cookies.set('result', JSON.stringify({ books: booksWithImages }));
+      });
+    }
+  }, []);
+
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
@@ -57,12 +102,15 @@ const HomePage = () => {
       const result = await generatePrompts(prompt);
       if (result) {
         // Set the result immediately with books with default cover images
-        setResult({
-          books: result.books.map((book) => ({
-            ...book,
-            image: defaultCover.src,
-          })),
-        });
+        const booksWithDefaultImages = result.books.map((book) => ({
+          ...book,
+          image: defaultCover.src,
+        }));
+        setResult({ books: booksWithDefaultImages });
+        Cookies.set(
+          'result',
+          JSON.stringify({ books: booksWithDefaultImages })
+        );
 
         // Fetch images asynchronously
         const booksWithImages = await Promise.all(
@@ -97,6 +145,7 @@ const HomePage = () => {
 
         // Update the result with books with images
         setResult({ books: booksWithImages });
+        Cookies.set('result', JSON.stringify({ books: booksWithImages }));
       }
     } catch (err) {
       setError('Failed to generate prompt');
@@ -185,6 +234,9 @@ const HomePage = () => {
                     }
                     alt={`${book.name} cover`}
                     className="w-full h-48 object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = defaultCover.src;
+                    }}
                   />
                   <Link href={`/prompts/${book.isbn}`}>
                     <div className="mt-2">
