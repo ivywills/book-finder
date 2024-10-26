@@ -25,6 +25,7 @@ const HomePage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showArrows, setShowArrows] = useState(true);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
     const fetchFavorites = async () => {
@@ -145,67 +146,101 @@ const HomePage = () => {
       slides.push(books.slice(i, i + itemsPerSlide));
     }
 
+    const handleDotClick = (index: number) => {
+      setCurrentSlide(index);
+      document
+        .getElementById(`${idPrefix}${index}`)
+        ?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    const handleScroll = () => {
+      const carousel = document.querySelector('.carousel');
+      const scrollLeft = carousel?.scrollLeft || 0;
+      const slideWidth = carousel?.clientWidth || 0;
+      const newIndex = Math.round(scrollLeft / slideWidth);
+      setCurrentSlide(newIndex);
+    };
+
     return (
-      <div
-        className="carousel w-full"
-        onTouchStart={() => setShowArrows(false)}
-        onTouchEnd={() => setShowArrows(true)}
-      >
-        {slides.map((slide, index) => (
-          <div
-            id={`${idPrefix}${index}`}
-            className="carousel-item relative w-full flex justify-center"
-            key={index}
-          >
-            {slide.map((book) => (
-              <div key={book.isbn} className="card w-1/3 p-2 relative">
-                <img
-                  src={
-                    typeof book.image === 'string'
-                      ? book.image
-                      : defaultCover.src
-                  }
-                  alt={`${book.name} cover`}
-                  className="w-full h-48 object-cover"
-                />
-                <Link href={`/prompts/${book.isbn}`}>
-                  <div className="mt-2">
-                    <strong>{book.name}</strong>
-                    <p>{book.author}</p>
-                  </div>
-                </Link>
-                <button
-                  onClick={() => addToFavorites(book)}
-                  className="absolute top-2 right-2 text-2xl"
-                  title="Add to Favorites"
-                >
-                  <FontAwesomeIcon
-                    icon={isFavorite(book) ? solidHeart : regularHeart}
-                    className={isFavorite(book) ? 'text-red-500' : 'text-white'}
+      <div>
+        <div
+          className="carousel w-full overflow-x-scroll snap-x snap-mandatory"
+          onTouchStart={() => setShowArrows(false)}
+          onTouchEnd={() => setShowArrows(true)}
+          onScroll={handleScroll}
+        >
+          {slides.map((slide, index) => (
+            <div
+              id={`${idPrefix}${index}`}
+              className="carousel-item relative w-full flex justify-center snap-center"
+              key={index}
+            >
+              {slide.map((book) => (
+                <div key={book.isbn} className="card w-1/3 p-2 relative">
+                  <img
+                    src={
+                      typeof book.image === 'string'
+                        ? book.image
+                        : defaultCover.src
+                    }
+                    alt={`${book.name} cover`}
+                    className="w-full h-48 object-cover"
                   />
-                </button>
-              </div>
-            ))}
-            {showArrows && (
-              <div className="absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
-                <a
-                  href={`#${idPrefix}${
-                    (index - 1 + slides.length) % slides.length
-                  }`}
-                  className="btn btn-circle"
-                >
-                  ❮
-                </a>
-                <a
-                  href={`#${idPrefix}${(index + 1) % slides.length}`}
-                  className="btn btn-circle"
-                >
-                  ❯
-                </a>
-              </div>
-            )}
-          </div>
-        ))}
+                  <Link href={`/prompts/${book.isbn}`}>
+                    <div className="mt-2">
+                      <strong>{book.name}</strong>
+                      <p>{book.author}</p>
+                    </div>
+                  </Link>
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      addToFavorites(book);
+                    }}
+                    className="absolute top-2 right-2 text-2xl"
+                    title="Add to Favorites"
+                  >
+                    <FontAwesomeIcon
+                      icon={isFavorite(book) ? solidHeart : regularHeart}
+                      className={
+                        isFavorite(book) ? 'text-red-500' : 'text-white'
+                      }
+                    />
+                  </button>
+                </div>
+              ))}
+              {showArrows && (
+                <div className="hidden md:flex absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
+                  <a
+                    href={`#${idPrefix}${
+                      (index - 1 + slides.length) % slides.length
+                    }`}
+                    className="btn btn-circle"
+                  >
+                    ❮
+                  </a>
+                  <a
+                    href={`#${idPrefix}${(index + 1) % slides.length}`}
+                    className="btn btn-circle"
+                  >
+                    ❯
+                  </a>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-center mt-4 md:hidden">
+          {slides.map((_, index) => (
+            <button
+              key={index}
+              className={`mx-1 w-2 h-2 rounded-full ${
+                currentSlide === index ? 'bg-gray-800' : 'bg-gray-400'
+              }`}
+              onClick={() => handleDotClick(index)}
+            />
+          ))}
+        </div>
       </div>
     );
   };
