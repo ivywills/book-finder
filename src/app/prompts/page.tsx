@@ -212,20 +212,26 @@ const HomePage = () => {
 
   return (
     <div className="max-w-lg mx-auto p-5">
-      <h1 className="text-3xl font-bold mb-6">Book Finder</h1>
-      <form onSubmit={handleSubmit}>
-        <div className="mb-6">
-          <label htmlFor="prompt">Please enter some books you like:</label>
+      <h1 className="text-3xl font-bold mb-6 text-center">Book Finder</h1>
+      <label htmlFor="prompt" className="block mb-2">
+        Please enter some books you like:
+      </label>
+      <form onSubmit={handleSubmit} className="flex items-center space-x-4">
+        <div className="flex-1">
           <textarea
             id="prompt"
             className="textarea textarea-primary w-full focus:outline-none focus:ring-0"
             placeholder="Enter a few books you like..."
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
-            rows={4}
+            rows={1}
           />
         </div>
-        <button type="submit" className="btn" disabled={loading}>
+        <button
+          type="submit"
+          className="btn flex-shrink-0 -mt-2"
+          disabled={loading}
+        >
           {loading ? (
             <>
               <span className="loading loading-spinner"></span>
@@ -243,7 +249,7 @@ const HomePage = () => {
         </div>
       )}
       {favorites.length > 0 && (
-        <div className="mt-5">
+        <div>
           <h2>Favorites:</h2>
           {renderCarousel(favorites, 'favorite-slide')}
         </div>
