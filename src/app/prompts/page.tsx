@@ -27,6 +27,27 @@ const HomePage = () => {
   const [error, setError] = useState<string | null>(null);
   const [showArrows, setShowArrows] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [theme, setTheme] = useState<string | null>(null);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedTheme = localStorage.getItem('theme');
+      if (storedTheme) {
+        setTheme(storedTheme);
+      } else {
+        setTheme('light');
+      }
+      setMounted(true);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+    }
+  }, [theme]);
 
   useEffect(() => {
     const fetchFavorites = async () => {
@@ -93,6 +114,10 @@ const HomePage = () => {
       });
     }
   }, []);
+
+  if (!mounted) {
+    return null; // Render nothing until the theme is set
+  }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();

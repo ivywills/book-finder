@@ -5,21 +5,31 @@ import { useState, useEffect } from 'react';
 export default function ThemeToggle() {
   const [theme, setTheme] = useState('light');
   const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
-    const storedTheme = localStorage.getItem('theme');
-    if (storedTheme) {
-      setTheme(storedTheme);
+    if (typeof window !== 'undefined') {
+      const storedTheme = localStorage.getItem('theme');
+      if (storedTheme) {
+        setTheme(storedTheme);
+      }
+      setMounted(true);
     }
   }, []);
 
   useEffect(() => {
-    document.documentElement.className = theme;
-    localStorage.setItem('theme', theme);
-  }, [theme]);
+    if (mounted) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+    }
+  }, [theme, mounted]);
 
   const handleThemeChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-    setTheme(event.target.value);
+    const newTheme = event.target.value;
+    if (newTheme !== theme) {
+      setTheme(newTheme);
+      localStorage.setItem('theme', newTheme);
+    }
     setDropdownOpen(false); // Close the dropdown when a theme is selected
   };
 
@@ -74,6 +84,28 @@ export default function ThemeToggle() {
               aria-label="Dark"
               value="dark"
               checked={theme === 'dark'}
+              onChange={handleThemeChange}
+            />
+          </li>
+          <li>
+            <input
+              type="radio"
+              name="theme-dropdown"
+              className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
+              aria-label="Cupcake"
+              value="cupcake"
+              checked={theme === 'cupcake'}
+              onChange={handleThemeChange}
+            />
+          </li>
+          <li>
+            <input
+              type="radio"
+              name="theme-dropdown"
+              className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
+              aria-label="Forest"
+              value="forest"
+              checked={theme === 'forest'}
               onChange={handleThemeChange}
             />
           </li>

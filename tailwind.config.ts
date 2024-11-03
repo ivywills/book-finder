@@ -26,15 +26,7 @@ const config: Config = {
     require('daisyui'),
   ],
   daisyui: {
-    themes: [
-      {
-        mytheme: {
-          primary: '#4C1D95',
-          'primary-focus': '#3B0764',
-          'primary-content': '#ffffff',
-        },
-      },
-    ],
+    themes: ["light", "dark", "cupcake", "forest"], // Correctly configure DaisyUI themes
   },
 };
 

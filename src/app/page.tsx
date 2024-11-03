@@ -3,8 +3,33 @@
 import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs';
 import Image from 'next/image';
 import booksImage from './books.png';
+import { useEffect, useState } from 'react';
 
 export default function Home() {
+  const [theme, setTheme] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const storedTheme = localStorage.getItem('theme');
+      if (storedTheme) {
+        setTheme(storedTheme);
+      } else {
+        setTheme('light');
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    if (theme) {
+      document.documentElement.setAttribute('data-theme', theme);
+      localStorage.setItem('theme', theme);
+    }
+  }, [theme]);
+
+  if (!theme) {
+    return null; // Render nothing until the theme is set
+  }
+
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen">
       <SignedIn>
