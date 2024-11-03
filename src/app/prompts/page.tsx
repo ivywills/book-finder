@@ -286,7 +286,7 @@ const HomePage = () => {
           {slides.map((_, index) => (
             <button
               key={index}
-              className={`mx-1 w-2 h-2 rounded-full ${
+              className={`btn-secondary mx-1 w-2 h-2 rounded-full ${
                 currentSlide === index ? 'bg-gray-800' : 'bg-gray-400'
               }`}
               onClick={() => handleDotClick(index)}
@@ -298,7 +298,7 @@ const HomePage = () => {
   };
 
   return (
-    <div className="max-w-lg mx-auto p-5">
+    <div className="min-h-screen max-w-lg mx-auto p-5">
       <h1 className="text-3xl font-bold mb-6 text-center">Book Finder</h1>
       <label htmlFor="prompt" className="block mb-2">
         Please enter some books you like:
@@ -316,7 +316,7 @@ const HomePage = () => {
         </div>
         <button
           type="submit"
-          className="btn flex-shrink-0 -mt-2"
+          className="btn btn-primary flex-shrink-0 -mt-2"
           disabled={loading}
         >
           {loading ? (
