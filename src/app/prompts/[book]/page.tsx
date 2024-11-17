@@ -1,7 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { useParams } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import defaultCover from '../../default-cover.jpg';
 
 interface Book {
@@ -14,22 +14,30 @@ interface Book {
   publishedDate: string | null;
   pageCount: number | null;
   categories: string[] | null;
+  reviews: Review[] | null;
+}
+
+interface Review {
+  author: string;
+  content: string;
+  rating: number;
 }
 
 const BookPage = () => {
-  const { book: bookParam } = useParams();
-  const isbn = Array.isArray(bookParam) ? bookParam[0] : bookParam;
+  const pathname = usePathname();
+  const title = decodeURIComponent(pathname.split('/').pop() || '');
+  console.log(title);
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
-    if (isbn) {
+    if (title) {
       const fetchBookDetails = async () => {
         try {
-          console.log(`Fetching book details for ISBN: ${isbn}`);
+          console.log(`Fetching book details for title: ${title}`);
           const response = await fetch(
-            `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
+            `https://www.googleapis.com/books/v1/volumes?q=intitle:${title}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
           );
           if (!response.ok) {
             throw new Error('Failed to fetch book details');
@@ -42,16 +50,24 @@ const BookPage = () => {
             throw new Error('Book not found');
           }
 
+          const reviews = bookData.reviews || [];
+
           const book: Book = {
             name: bookData.title,
             author: bookData.authors?.[0] || 'Unknown Author',
-            isbn,
+            isbn:
+              bookData.industryIdentifiers?.[0]?.identifier || 'Unknown ISBN',
             image: bookData.imageLinks?.thumbnail || null,
             description: bookData.description || null,
             publisher: bookData.publisher || null,
             publishedDate: bookData.publishedDate || null,
             pageCount: bookData.pageCount || null,
             categories: bookData.categories || null,
+            reviews: reviews.map((review: any) => ({
+              author: review.author || 'Anonymous',
+              content: review.content || '',
+              rating: review.rating || 0,
+            })),
           };
 
           setBook(book);
@@ -66,9 +82,9 @@ const BookPage = () => {
       fetchBookDetails();
     } else {
       setLoading(false);
-      setError('ISBN not provided');
+      setError('Title not provided');
     }
-  }, [isbn]);
+  }, [title]);
 
   if (loading) {
     return <div>Loading...</div>;
@@ -120,6 +136,24 @@ const BookPage = () => {
         <p>
           <strong>Categories:</strong> {book.categories.join(', ')}
         </p>
+      )}
+      {book.reviews && book.reviews.length > 0 && (
+        <div>
+          <h2 className="text-2xl font-bold mt-6 mb-4">Reviews</h2>
+          <ul className="space-y-4">
+            {book.reviews.map((review, index) => (
+              <li key={index} className="border p-4 rounded-lg">
+                <p>
+                  <strong>Author:</strong> {review.author}
+                </p>
+                <p>
+                  <strong>Rating:</strong> {review.rating}/5
+                </p>
+                <p>{review.content}</p>
+              </li>
+            ))}
+          </ul>
+        </div>
       )}
     </div>
   );

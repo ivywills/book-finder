@@ -325,7 +325,7 @@ const HomePage = () => {
                       e.currentTarget.src = defaultCover.src;
                     }}
                   />
-                  <Link href={`/prompts/${book.isbn}`}>
+                  <Link href={`/prompts/${encodeURIComponent(book.name)}`}>
                     <div className="mt-2">
                       <strong className="block truncate">{book.name}</strong>
                       <p className="block truncate">{book.author}</p>
