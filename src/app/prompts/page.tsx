@@ -327,12 +327,12 @@ const HomePage = () => {
                   />
                   <Link href={`/prompts/${book.isbn}`}>
                     <div className="mt-2">
-                      <strong>{book.name}</strong>
-                      <p>{book.author}</p>
+                      <strong className="block truncate">{book.name}</strong>
+                      <p className="block truncate">{book.author}</p>
                       {book.averageRating !== null && (
-                        <div className="flex items-center">
+                        <div className="flex flex-wrap items-center">
                           {renderStars(book.averageRating)}
-                          <span className="ml-2 text-sm text-gray-600">
+                          <span className="md:ml-2 text-sm text-gray-600 w-full sm:w-auto">
                             {book.ratingsCount ? `(${book.ratingsCount})` : ''}
                           </span>
                         </div>
