@@ -26,7 +26,7 @@ const config: Config = {
     require('daisyui'),
   ],
   daisyui: {
-    themes: ["light", "dark", "cupcake", "forest"], // Correctly configure DaisyUI themes
+    themes: ["light", "dark", "cupcake", "forest", "valentine", "dracula", "night", "coffee", "corporate", "winter"], // Correctly configure DaisyUI themes
   },
 };
 

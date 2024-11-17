@@ -109,6 +109,72 @@ export default function ThemeToggle() {
               onChange={handleThemeChange}
             />
           </li>
+          <li>
+            <input
+              type="radio"
+              name="theme-dropdown"
+              className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
+              aria-label="Valentine"
+              value="valentine"
+              checked={theme === 'valentine'}
+              onChange={handleThemeChange}
+            />
+          </li>
+          <li>
+            <input
+              type="radio"
+              name="theme-dropdown"
+              className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
+              aria-label="Dracula"
+              value="dracula"
+              checked={theme === 'dracula'}
+              onChange={handleThemeChange}
+            />
+          </li>
+          <li>
+            <input
+              type="radio"
+              name="theme-dropdown"
+              className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
+              aria-label="Night"
+              value="night"
+              checked={theme === 'night'}
+              onChange={handleThemeChange}
+            />
+          </li>
+          <li>
+            <input
+              type="radio"
+              name="theme-dropdown"
+              className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
+              aria-label="Coffee"
+              value="coffee"
+              checked={theme === 'coffee'}
+              onChange={handleThemeChange}
+            />
+          </li>
+          <li>
+            <input
+              type="radio"
+              name="theme-dropdown"
+              className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
+              aria-label="Corporate"
+              value="corporate"
+              checked={theme === 'corporate'}
+              onChange={handleThemeChange}
+            />
+          </li>
+          <li>
+            <input
+              type="radio"
+              name="theme-dropdown"
+              className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
+              aria-label="Winter"
+              value="winter"
+              checked={theme === 'winter'}
+              onChange={handleThemeChange}
+            />
+          </li>
         </ul>
       )}
     </div>
