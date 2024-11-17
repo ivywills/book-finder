@@ -274,7 +274,7 @@ const HomePage = () => {
                       e.stopPropagation();
                       addToFavorites(book);
                     }}
-                    className="absolute top-2 right-2 text-2xl"
+                    className="absolute top-2 right-2 text-2xl px-2"
                     title="Add to Favorites"
                   >
                     <FontAwesomeIcon
