@@ -14,15 +14,15 @@ interface Book {
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
-  const isbn = searchParams.get('isbn');
+  const title = searchParams.get('title');
 
   console.log('Request URL:', req.url);
-  console.log('ISBN:', isbn);
+  console.log('Title:', title);
   console.log('Google Books API Key:', process.env.GOOGLE_BOOKS_API_KEY);
 
-  if (!isbn) {
-    console.error('Invalid ISBN');
-    return NextResponse.json({ error: 'Invalid ISBN' }, { status: 400 });
+  if (!title) {
+    console.error('Invalid title');
+    return NextResponse.json({ error: 'Invalid title' }, { status: 400 });
   }
 
   if (!process.env.GOOGLE_BOOKS_API_KEY) {
@@ -34,9 +34,9 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    console.log(`Fetching book details for ISBN: ${isbn}`);
+    console.log(`Fetching book details for title: ${title}`);
     const response = await fetch(
-      `https://www.googleapis.com/books/v1/volumes?q=isbn:${isbn}&key:${process.env.GOOGLE_BOOKS_API_KEY}`
+      `https://www.googleapis.com/books/v1/volumes?q=intitle:${title}&key=${process.env.GOOGLE_BOOKS_API_KEY}`
     );
     if (!response.ok) {
       console.error('Failed to fetch book details from Google Books API');
@@ -55,7 +55,7 @@ export async function GET(req: NextRequest) {
     const book: Book = {
       name: bookData.title,
       author: bookData.authors?.[0] || 'Unknown Author',
-      isbn,
+      isbn: bookData.industryIdentifiers?.[0]?.identifier || null,
       image: bookData.imageLinks?.thumbnail || null,
       description: bookData.description || null,
       publisher: bookData.publisher || null,

@@ -16,6 +16,7 @@ interface Book {
   author: string;
   isbn: string;
   image: string | StaticImageData | null;
+  reviews: string | null;
 }
 
 const HomePage = () => {
@@ -75,8 +76,8 @@ const HomePage = () => {
     const fetchImages = async (books: Book[]) => {
       const booksWithImages = await Promise.all(
         books.map(async (book) => {
-          const apiUrl = book.isbn
-            ? `https://www.googleapis.com/books/v1/volumes?q=isbn:${book.isbn}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
+          const apiUrl = book.name
+            ? `https://www.googleapis.com/books/v1/volumes?q=intitle:${book.name}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
             : null;
           if (apiUrl) {
             try {
@@ -84,22 +85,32 @@ const HomePage = () => {
               if (response.ok) {
                 const data = await response.json();
                 const bookData = data.items?.[0]?.volumeInfo;
-                if (bookData && bookData.imageLinks?.thumbnail) {
-                  return { ...book, image: bookData.imageLinks.thumbnail };
+                if (bookData) {
+                  return {
+                    ...book,
+                    image: bookData.imageLinks?.thumbnail || defaultCover.src,
+                    reviews: bookData.averageRating
+                      ? `Average Rating: ${bookData.averageRating} (${bookData.ratingsCount} reviews)`
+                      : 'No reviews available',
+                  };
                 } else {
-                  console.error(`No image found for ISBN: ${book.isbn}`);
+                  console.error(`No data found for title: ${book.name}`);
                 }
               } else {
-                console.error(`Failed to fetch image for ISBN: ${book.isbn}`);
+                console.error(`Failed to fetch data for title: ${book.name}`);
               }
             } catch (error) {
               console.error(
-                `Error fetching image for ISBN: ${book.isbn}`,
+                `Error fetching data for title: ${book.name}`,
                 error
               );
             }
           }
-          return { ...book, image: defaultCover.src };
+          return {
+            ...book,
+            image: defaultCover.src,
+            reviews: 'No reviews available',
+          };
         })
       );
       return booksWithImages;
@@ -130,6 +141,7 @@ const HomePage = () => {
         const booksWithDefaultImages = result.books.map((book) => ({
           ...book,
           image: defaultCover.src,
+          reviews: 'No reviews available',
         }));
         setResult({ books: booksWithDefaultImages });
         Cookies.set(
@@ -137,11 +149,11 @@ const HomePage = () => {
           JSON.stringify({ books: booksWithDefaultImages })
         );
 
-        // Fetch images asynchronously
+        // Fetch images and reviews asynchronously
         const booksWithImages = await Promise.all(
           result.books.map(async (book) => {
-            const apiUrl = book.isbn
-              ? `https://www.googleapis.com/books/v1/volumes?q=isbn:${book.isbn}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
+            const apiUrl = book.name
+              ? `https://www.googleapis.com/books/v1/volumes?q=intitle:${book.name}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
               : null;
             if (apiUrl) {
               try {
@@ -149,26 +161,36 @@ const HomePage = () => {
                 if (response.ok) {
                   const data = await response.json();
                   const bookData = data.items?.[0]?.volumeInfo;
-                  if (bookData && bookData.imageLinks?.thumbnail) {
-                    return { ...book, image: bookData.imageLinks.thumbnail };
+                  if (bookData) {
+                    return {
+                      ...book,
+                      image: bookData.imageLinks?.thumbnail || defaultCover.src,
+                      reviews: bookData.averageRating
+                        ? `Average Rating: ${bookData.averageRating} (${bookData.ratingsCount} reviews)`
+                        : 'No reviews available',
+                    };
                   } else {
-                    console.error(`No image found for ISBN: ${book.isbn}`);
+                    console.error(`No data found for title: ${book.name}`);
                   }
                 } else {
-                  console.error(`Failed to fetch image for ISBN: ${book.isbn}`);
+                  console.error(`Failed to fetch data for title: ${book.name}`);
                 }
               } catch (error) {
                 console.error(
-                  `Error fetching image for ISBN: ${book.isbn}`,
+                  `Error fetching data for title: ${book.name}`,
                   error
                 );
               }
             }
-            return { ...book, image: defaultCover.src };
+            return {
+              ...book,
+              image: defaultCover.src,
+              reviews: 'No reviews available',
+            };
           })
         );
 
-        // Update the result with books with images
+        // Update the result with books with images and reviews
         setResult({ books: booksWithImages });
         Cookies.set('result', JSON.stringify({ books: booksWithImages }));
       }
@@ -267,6 +289,7 @@ const HomePage = () => {
                     <div className="mt-2">
                       <strong>{book.name}</strong>
                       <p>{book.author}</p>
+                      <p>{book.reviews}</p>
                     </div>
                   </Link>
                   <button
