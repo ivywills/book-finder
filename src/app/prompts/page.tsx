@@ -65,8 +65,9 @@ const HomePage = () => {
           throw new Error('Failed to fetch favorites');
         }
         const data = await response.json();
-        setFavorites(data.favorites);
-        console.log('Favorite Books:', data.favorites);
+        const updatedFavorites = await fetchImages(data.favorites);
+        setFavorites(updatedFavorites);
+        console.log('Favorite Books:', updatedFavorites);
       } catch (error) {
         console.error('Error fetching favorites:', error);
         setError('Failed to fetch favorites');
@@ -76,50 +77,47 @@ const HomePage = () => {
     fetchFavorites();
   }, [user]);
 
-  useEffect(() => {
-    const fetchImages = async (books: Book[]) => {
-      const booksWithImages = await Promise.all(
-        books.map(async (book) => {
-          const apiUrl = book.name
-            ? `https://www.googleapis.com/books/v1/volumes?q=intitle:${book.name}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
-            : null;
-          if (apiUrl) {
-            try {
-              const response = await fetch(apiUrl);
-              if (response.ok) {
-                const data = await response.json();
-                const bookData = data.items?.[0]?.volumeInfo;
-                if (bookData) {
-                  return {
-                    ...book,
-                    image: bookData.imageLinks?.thumbnail || defaultCover.src,
-                    averageRating: bookData.averageRating || null,
-                    ratingsCount: bookData.ratingsCount || null,
-                  };
-                } else {
-                  console.error(`No data found for title: ${book.name}`);
-                }
+  const fetchImages = async (books: Book[]) => {
+    const booksWithImages = await Promise.all(
+      books.map(async (book) => {
+        const apiUrl = book.name
+          ? `https://www.googleapis.com/books/v1/volumes?q=intitle:${book.name}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
+          : null;
+        if (apiUrl) {
+          try {
+            const response = await fetch(apiUrl);
+            if (response.ok) {
+              const data = await response.json();
+              const bookData = data.items?.[0]?.volumeInfo;
+              if (bookData) {
+                return {
+                  ...book,
+                  image: bookData.imageLinks?.thumbnail || defaultCover.src,
+                  averageRating: bookData.averageRating || null,
+                  ratingsCount: bookData.ratingsCount || null,
+                };
               } else {
-                console.error(`Failed to fetch data for title: ${book.name}`);
+                console.error(`No data found for title: ${book.name}`);
               }
-            } catch (error) {
-              console.error(
-                `Error fetching data for title: ${book.name}`,
-                error
-              );
+            } else {
+              console.error(`Failed to fetch data for title: ${book.name}`);
             }
+          } catch (error) {
+            console.error(`Error fetching data for title: ${book.name}`, error);
           }
-          return {
-            ...book,
-            image: defaultCover.src,
-            averageRating: null,
-            ratingsCount: null,
-          };
-        })
-      );
-      return booksWithImages;
-    };
+        }
+        return {
+          ...book,
+          image: defaultCover.src,
+          averageRating: null,
+          ratingsCount: null,
+        };
+      })
+    );
+    return booksWithImages;
+  };
 
+  useEffect(() => {
     const savedResult = Cookies.get('result');
     if (savedResult) {
       const cachedResult = JSON.parse(savedResult);
