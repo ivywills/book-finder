@@ -38,7 +38,7 @@ export default function ThemeToggle() {
   };
 
   return (
-    <div className="dropdown absolute top-2 right-2 z-10">
+    <div className="dropdown absolute top-2 right-2 z-10 text-black">
       <div
         tabIndex={0}
         role="button"
@@ -63,13 +63,13 @@ export default function ThemeToggle() {
       {dropdownOpen && (
         <ul
           tabIndex={0}
-          className="dropdown-content bg-white dark:bg-black rounded-box z-[1] w-52 p-2 shadow-2xl right-0"
+          className="dropdown-content bg-white dark:bg-black rounded-box z-[1] w-52 p-2 shadow-2xl right-0 text-black"
         >
           <li>
             <input
               type="radio"
               name="theme-dropdown"
-              className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
+              className="theme-controller btn btn-sm btn-block btn-ghost justify-start text-black"
               aria-label="Light"
               value="light"
               checked={theme === 'light'}
@@ -80,7 +80,7 @@ export default function ThemeToggle() {
             <input
               type="radio"
               name="theme-dropdown"
-              className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
+              className="theme-controller btn btn-sm btn-block btn-ghost justify-start text-black"
               aria-label="Dark"
               value="dark"
               checked={theme === 'dark'}
@@ -91,7 +91,7 @@ export default function ThemeToggle() {
             <input
               type="radio"
               name="theme-dropdown"
-              className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
+              className="theme-controller btn btn-sm btn-block btn-ghost justify-start text-black"
               aria-label="Cupcake"
               value="cupcake"
               checked={theme === 'cupcake'}
@@ -102,7 +102,7 @@ export default function ThemeToggle() {
             <input
               type="radio"
               name="theme-dropdown"
-              className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
+              className="theme-controller btn btn-sm btn-block btn-ghost justify-start text-black"
               aria-label="Forest"
               value="forest"
               checked={theme === 'forest'}
@@ -113,7 +113,7 @@ export default function ThemeToggle() {
             <input
               type="radio"
               name="theme-dropdown"
-              className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
+              className="theme-controller btn btn-sm btn-block btn-ghost justify-start text-black"
               aria-label="Valentine"
               value="valentine"
               checked={theme === 'valentine'}
@@ -124,7 +124,7 @@ export default function ThemeToggle() {
             <input
               type="radio"
               name="theme-dropdown"
-              className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
+              className="theme-controller btn btn-sm btn-block btn-ghost justify-start text-black"
               aria-label="Dracula"
               value="dracula"
               checked={theme === 'dracula'}
@@ -135,7 +135,7 @@ export default function ThemeToggle() {
             <input
               type="radio"
               name="theme-dropdown"
-              className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
+              className="theme-controller btn btn-sm btn-block btn-ghost justify-start text-black"
               aria-label="Night"
               value="night"
               checked={theme === 'night'}
@@ -146,7 +146,7 @@ export default function ThemeToggle() {
             <input
               type="radio"
               name="theme-dropdown"
-              className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
+              className="theme-controller btn btn-sm btn-block btn-ghost justify-start text-black"
               aria-label="Coffee"
               value="coffee"
               checked={theme === 'coffee'}
@@ -157,7 +157,7 @@ export default function ThemeToggle() {
             <input
               type="radio"
               name="theme-dropdown"
-              className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
+              className="theme-controller btn btn-sm btn-block btn-ghost justify-start text-black"
               aria-label="Corporate"
               value="corporate"
               checked={theme === 'corporate'}
@@ -168,7 +168,7 @@ export default function ThemeToggle() {
             <input
               type="radio"
               name="theme-dropdown"
-              className="theme-controller btn btn-sm btn-block btn-ghost justify-start"
+              className="theme-controller btn btn-sm btn-block btn-ghost justify-start text-black"
               aria-label="Winter"
               value="winter"
               checked={theme === 'winter'}
