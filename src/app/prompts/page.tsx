@@ -7,6 +7,9 @@ import { generatePrompts } from '../../actions/open-ai';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faHeart as solidHeart } from '@fortawesome/free-solid-svg-icons';
 import { faHeart as regularHeart } from '@fortawesome/free-regular-svg-icons';
+import { faStar as solidStar } from '@fortawesome/free-solid-svg-icons';
+import { faStarHalfAlt as halfStar } from '@fortawesome/free-solid-svg-icons';
+import { faStar as regularStar } from '@fortawesome/free-regular-svg-icons';
 import defaultCover from '../default-cover.jpg';
 import { StaticImageData } from 'next/image';
 import Cookies from 'js-cookie';
@@ -16,7 +19,8 @@ interface Book {
   author: string;
   isbn: string;
   image: string | StaticImageData | null;
-  reviews: string | null;
+  averageRating: number | null;
+  ratingsCount: number | null;
 }
 
 const HomePage = () => {
@@ -89,9 +93,8 @@ const HomePage = () => {
                   return {
                     ...book,
                     image: bookData.imageLinks?.thumbnail || defaultCover.src,
-                    reviews: bookData.averageRating
-                      ? `Average Rating: ${bookData.averageRating} (${bookData.ratingsCount} reviews)`
-                      : 'No reviews available',
+                    averageRating: bookData.averageRating || null,
+                    ratingsCount: bookData.ratingsCount || null,
                   };
                 } else {
                   console.error(`No data found for title: ${book.name}`);
@@ -109,7 +112,8 @@ const HomePage = () => {
           return {
             ...book,
             image: defaultCover.src,
-            reviews: 'No reviews available',
+            averageRating: null,
+            ratingsCount: null,
           };
         })
       );
@@ -141,7 +145,8 @@ const HomePage = () => {
         const booksWithDefaultImages = result.books.map((book) => ({
           ...book,
           image: defaultCover.src,
-          reviews: 'No reviews available',
+          averageRating: null,
+          ratingsCount: null,
         }));
         setResult({ books: booksWithDefaultImages });
         Cookies.set(
@@ -165,9 +170,8 @@ const HomePage = () => {
                     return {
                       ...book,
                       image: bookData.imageLinks?.thumbnail || defaultCover.src,
-                      reviews: bookData.averageRating
-                        ? `Average Rating: ${bookData.averageRating} (${bookData.ratingsCount} reviews)`
-                        : 'No reviews available',
+                      averageRating: bookData.averageRating || null,
+                      ratingsCount: bookData.ratingsCount || null,
                     };
                   } else {
                     console.error(`No data found for title: ${book.name}`);
@@ -185,7 +189,8 @@ const HomePage = () => {
             return {
               ...book,
               image: defaultCover.src,
-              reviews: 'No reviews available',
+              averageRating: null,
+              ratingsCount: null,
             };
           })
         );
@@ -233,6 +238,43 @@ const HomePage = () => {
 
   const isFavorite = (book: Book) => {
     return favorites.some((fav) => fav.isbn === book.isbn);
+  };
+
+  const renderStars = (averageRating: number | null) => {
+    if (averageRating === null) return null;
+
+    const stars = [];
+    for (let i = 1; i <= 5; i++) {
+      if (i <= averageRating) {
+        stars.push(
+          <FontAwesomeIcon
+            key={i}
+            icon={solidStar}
+            className="text-yellow-500"
+            style={{ WebkitTextStroke: '1px white' }}
+          />
+        );
+      } else if (i - 0.5 <= averageRating) {
+        stars.push(
+          <FontAwesomeIcon
+            key={i}
+            icon={halfStar}
+            className="text-yellow-500"
+            style={{ WebkitTextStroke: '1px white' }}
+          />
+        );
+      } else {
+        stars.push(
+          <FontAwesomeIcon
+            key={i}
+            icon={regularStar}
+            className="text-gray-300"
+            style={{ WebkitTextStroke: '1px white' }}
+          />
+        );
+      }
+    }
+    return stars;
   };
 
   const renderCarousel = (books: Book[], idPrefix: string) => {
@@ -289,7 +331,14 @@ const HomePage = () => {
                     <div className="mt-2">
                       <strong>{book.name}</strong>
                       <p>{book.author}</p>
-                      <p>{book.reviews}</p>
+                      {book.averageRating !== null && (
+                        <div className="flex items-center">
+                          {renderStars(book.averageRating)}
+                          <span className="ml-2 text-sm text-gray-600">
+                            {book.ratingsCount ? `(${book.ratingsCount})` : ''}
+                          </span>
+                        </div>
+                      )}
                     </div>
                   </Link>
                   <button
