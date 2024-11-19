@@ -43,8 +43,6 @@ const BookPage = () => {
             throw new Error('Book not found');
           }
 
-          const reviews = bookData.reviews || [];
-
           const book: Book = {
             name: bookData.title,
             author: bookData.authors?.[0] || 'Unknown Author',
