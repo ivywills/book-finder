@@ -14,13 +14,6 @@ interface Book {
   publishedDate: string | null;
   pageCount: number | null;
   categories: string[] | null;
-  reviews: Review[] | null;
-}
-
-interface Review {
-  author: string;
-  content: string;
-  rating: number;
 }
 
 const BookPage = () => {
@@ -63,11 +56,6 @@ const BookPage = () => {
             publishedDate: bookData.publishedDate || null,
             pageCount: bookData.pageCount || null,
             categories: bookData.categories || null,
-            reviews: reviews.map((review: any) => ({
-              author: review.author || 'Anonymous',
-              content: review.content || '',
-              rating: review.rating || 0,
-            })),
           };
 
           setBook(book);
@@ -136,24 +124,6 @@ const BookPage = () => {
         <p>
           <strong>Categories:</strong> {book.categories.join(', ')}
         </p>
-      )}
-      {book.reviews && book.reviews.length > 0 && (
-        <div>
-          <h2 className="text-2xl font-bold mt-6 mb-4">Reviews</h2>
-          <ul className="space-y-4">
-            {book.reviews.map((review, index) => (
-              <li key={index} className="border p-4 rounded-lg">
-                <p>
-                  <strong>Author:</strong> {review.author}
-                </p>
-                <p>
-                  <strong>Rating:</strong> {review.rating}/5
-                </p>
-                <p>{review.content}</p>
-              </li>
-            ))}
-          </ul>
-        </div>
       )}
     </div>
   );
