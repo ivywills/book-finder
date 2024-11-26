@@ -8,7 +8,15 @@ interface AddFavoriteEvent {
   };
 }
 
-type WebhookEvent = ClerkWebhookEvent | AddFavoriteEvent;
+interface AddCurrentlyReadingEvent {
+  type: 'add.currentlyReading';
+  data: {
+    userId: string;
+    book: string;
+  };
+}
+
+type WebhookEvent = ClerkWebhookEvent | AddFavoriteEvent | AddCurrentlyReadingEvent;
 import { MongoClient } from 'mongodb';
 
 const client = new MongoClient(process.env.MONGODB_URI!);
@@ -38,6 +46,16 @@ export async function POST(request: Request) {
       { $addToSet: { favorites: book } },
       { upsert: true }
     );
+  } else if (payload.type === 'add.currentlyReading') {
+    const { userId, book } = payload.data;
+    await client.connect();
+    const db = client.db('bookfinder');
+    const usersCollection = db.collection('users');
+    await usersCollection.updateOne(
+      { id: userId },
+      { $set: { currentlyReading: book } },
+      { upsert: true }
+    );
   }
 
   console.log(payload);
@@ -64,11 +82,13 @@ export async function GET(request: Request) {
     }
 
     const favorites = user.favorites || [];
+    const currentlyReading = user.currentlyReading || null;
     console.log('Favorite Books:', favorites);
+    console.log('Currently Reading:', currentlyReading);
 
-    return new Response(JSON.stringify({ favorites }), { status: 200 });
+    return new Response(JSON.stringify({ favorites, currentlyReading }), { status: 200 });
   } catch (error) {
-    console.error('Error fetching favorites:', error);
-    return new Response(JSON.stringify({ error: 'Failed to fetch favorites' }), { status: 500 });
+    console.error('Error fetching user data:', error);
+    return new Response(JSON.stringify({ error: 'Failed to fetch user data' }), { status: 500 });
   }
 }
