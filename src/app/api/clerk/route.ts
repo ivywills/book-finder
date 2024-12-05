@@ -12,11 +12,32 @@ interface AddCurrentlyReadingEvent {
   type: 'add.currentlyReading';
   data: {
     userId: string;
-    book: string;
+    book: Book;
   };
 }
 
-type WebhookEvent = ClerkWebhookEvent | AddFavoriteEvent | AddCurrentlyReadingEvent;
+interface UpdateReadingProgressEvent {
+  type: 'update.readingProgress';
+  data: {
+    userId: string;
+    book: string;
+    progress: number;
+  };
+}
+
+interface Book {
+  title: string;
+  authors?: string[];
+  publisher?: string;
+  publishedDate?: string;
+  description?: string;
+  pageCount?: number;
+  imageLinks?: {
+    thumbnail?: string;
+  };
+}
+
+type WebhookEvent = ClerkWebhookEvent | AddFavoriteEvent | AddCurrentlyReadingEvent | UpdateReadingProgressEvent;
 import { MongoClient } from 'mongodb';
 
 const client = new MongoClient(process.env.MONGODB_URI!);
@@ -53,9 +74,20 @@ export async function POST(request: Request) {
     const usersCollection = db.collection('users');
     await usersCollection.updateOne(
       { id: userId },
-      { $set: { currentlyReading: book } },
+      { $set: { currentlyReading: { book, progress: 0 } } },
       { upsert: true }
     );
+  } else if (payload.type === 'update.readingProgress') {
+    const { userId, book, progress } = payload.data;
+    await client.connect();
+    const db = client.db('bookfinder');
+    const usersCollection = db.collection('users');
+    await usersCollection.updateOne(
+      { id: userId, 'currentlyReading.book.title': book },
+      { $set: { 'currentlyReading.progress': progress } },
+      { upsert: true }
+    );
+    console.log(`Updated progress for ${book}: ${progress}`);
   }
 
   console.log(payload);
@@ -83,10 +115,12 @@ export async function GET(request: Request) {
 
     const favorites = user.favorites || [];
     const currentlyReading = user.currentlyReading || null;
+    const progress = currentlyReading ? currentlyReading.progress : 0;
     console.log('Favorite Books:', favorites);
     console.log('Currently Reading:', currentlyReading);
+    console.log('Progress:', progress);
 
-    return new Response(JSON.stringify({ favorites, currentlyReading }), { status: 200 });
+    return new Response(JSON.stringify({ favorites, currentlyReading, progress }), { status: 200 });
   } catch (error) {
     console.error('Error fetching user data:', error);
     return new Response(JSON.stringify({ error: 'Failed to fetch user data' }), { status: 500 });

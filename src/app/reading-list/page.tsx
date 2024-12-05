@@ -9,6 +9,8 @@ interface Book {
   authors?: string[];
   publisher?: string;
   publishedDate?: string;
+  description?: string;
+  pageCount?: number;
   imageLinks?: {
     thumbnail?: string;
   };
@@ -21,6 +23,7 @@ const ReadingPage = () => {
   const [confirmedBook, setConfirmedBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pagesRead, setPagesRead] = useState<number>(0);
 
   useEffect(() => {
     const fetchCurrentlyReading = async () => {
@@ -36,19 +39,11 @@ const ReadingPage = () => {
         }
         const data = await response.json();
         if (data.currentlyReading) {
-          const bookTitle = data.currentlyReading;
-          const bookResponse = await fetch(
-            `https://www.googleapis.com/books/v1/volumes?q=intitle:${bookTitle}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
+          setConfirmedBook(data.currentlyReading.book);
+          setPagesRead(data.currentlyReading.progress || 0);
+          console.log(
+            `Fetched progress: ${data.currentlyReading.progress || 0}`
           );
-          if (!bookResponse.ok) {
-            throw new Error('Failed to fetch book details');
-          }
-          const bookData = await bookResponse.json();
-          if (bookData.items && bookData.items.length > 0) {
-            setConfirmedBook(bookData.items[0].volumeInfo);
-          } else {
-            setError('Book not found');
-          }
         }
       } catch (err) {
         console.error('Error fetching currently reading book:', err);
@@ -107,7 +102,7 @@ const ReadingPage = () => {
           type: 'add.currentlyReading',
           data: {
             userId: user.id,
-            book: book.title,
+            book,
           },
         }),
       });
@@ -124,6 +119,40 @@ const ReadingPage = () => {
       setError((err as Error).message);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handlePagesReadChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    const newPagesRead = Number(e.target.value);
+    setPagesRead(newPagesRead);
+
+    if (user && confirmedBook) {
+      try {
+        const response = await fetch('/api/clerk', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            type: 'update.readingProgress',
+            data: {
+              userId: user.id,
+              book: confirmedBook.title,
+              progress: newPagesRead,
+            },
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to update reading progress');
+        }
+        console.log(`Updated progress: ${newPagesRead}`);
+      } catch (err) {
+        console.error('Error updating reading progress:', err);
+        setError((err as Error).message);
+      }
     }
   };
 
@@ -156,6 +185,26 @@ const ReadingPage = () => {
             <strong>Published Date:</strong>{' '}
             {confirmedBook.publishedDate || 'Unknown Date'}
           </p>
+          <p>
+            <strong>Number of Pages:</strong>{' '}
+            {confirmedBook.pageCount || 'Unknown'}
+          </p>
+          {confirmedBook.pageCount && (
+            <div className="mt-4">
+              <label htmlFor="pagesRead" className="block mb-2">
+                Pages Read: {pagesRead} / {confirmedBook.pageCount}
+              </label>
+              <input
+                type="range"
+                id="pagesRead"
+                min="0"
+                max={confirmedBook.pageCount}
+                value={pagesRead}
+                onChange={handlePagesReadChange}
+                className="range range-secondary w-full"
+              />
+            </div>
+          )}
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
@@ -202,12 +251,17 @@ const ReadingPage = () => {
             <strong>Published Date:</strong>{' '}
             {book.publishedDate || 'Unknown Date'}
           </p>
-          <div className="mt-4">
-            <p className="text-lg font-semibold">Is this your book?</p>
-            <button className="btn btn-success mt-2" onClick={handleConfirm}>
-              Yes
-            </button>
-          </div>
+          <p>
+            <strong>Number of Pages:</strong> {book.pageCount || 'Unknown'}
+          </p>
+          {book.pageCount && (
+            <div className="mt-4">
+              <p className="text-lg font-semibold">Is this your book?</p>
+              <button className="btn btn-success mt-2" onClick={handleConfirm}>
+                Yes
+              </button>
+            </div>
+          )}
         </div>
       )}
     </div>
