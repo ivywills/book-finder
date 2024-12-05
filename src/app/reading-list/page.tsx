@@ -158,6 +158,43 @@ const ReadingPage = () => {
     }
   };
 
+  const handleRemove = async () => {
+    if (!user || !confirmedBook) {
+      setError('No user or book selected');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/clerk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'remove.currentlyReading',
+          data: {
+            userId: user.id,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to remove currently reading book');
+      }
+
+      setConfirmedBook(null);
+      setPagesRead(0);
+    } catch (err) {
+      console.error('Error removing currently reading book:', err);
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   if (initialLoad) {
     return null; // Leave the page blank during the initial load
   }
@@ -211,6 +248,9 @@ const ReadingPage = () => {
               />
             </div>
           )}
+          <button className="btn btn-danger mt-4" onClick={handleRemove}>
+            Remove
+          </button>
         </div>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
