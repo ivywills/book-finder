@@ -24,6 +24,7 @@ const ReadingPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pagesRead, setPagesRead] = useState<number>(0);
+  const [initialLoad, setInitialLoad] = useState(true);
 
   useEffect(() => {
     const fetchCurrentlyReading = async () => {
@@ -50,6 +51,7 @@ const ReadingPage = () => {
         setError((err as Error).message);
       } finally {
         setLoading(false);
+        setInitialLoad(false);
       }
     };
 
@@ -155,6 +157,10 @@ const ReadingPage = () => {
       }
     }
   };
+
+  if (initialLoad) {
+    return null; // Leave the page blank during the initial load
+  }
 
   return (
     <div className="max-w-lg mx-auto p-5">
