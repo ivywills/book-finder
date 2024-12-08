@@ -38,142 +38,144 @@ export default function ThemeToggle() {
   };
 
   return (
-    <div className="dropdown absolute top-2 right-2 z-10 text-black">
-      <div
-        tabIndex={0}
-        role="button"
-        className="btn m-1"
-        onClick={toggleDropdown}
-      >
-        <svg
-          xmlns="http://www.w3.org/2000/svg"
-          fill="none"
-          viewBox="0 0 24 24"
-          strokeWidth="1.5"
-          stroke="currentColor"
-          className="size-6"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            d="M9.53 16.122a3 3 0 0 0-5.78 1.128 2.25 2.25 0 0 1-2.4 2.245 4.5 4.5 0 0 0 8.4-2.245c0-.399-.078-.78-.22-1.128Zm0 0a15.998 15.998 0 0 0 3.388-1.62m-5.043-.025a15.994 15.994 0 0 1 1.622-3.395m3.42 3.42a15.995 15.995 0 0 0 4.764-4.648l3.876-5.814a1.151 1.151 0 0 0-1.597-1.597L14.146 6.32a15.996 15.996 0 0 0-4.649 4.763m3.42 3.42a6.776 6.776 0 0 0-3.42-3.42"
-          />
-        </svg>
-      </div>
+    <div className="relative">
+      <button tabIndex={0} onClick={toggleDropdown}>
+        Theme
+      </button>
       {dropdownOpen && (
         <ul
           tabIndex={0}
-          className="dropdown-content bg-white dark:bg-black rounded-box z-[1] w-52 p-2 shadow-2xl right-0 text-black"
+          className="absolute -right-1 -top-2 mt-2 p-2 shadow bg-base-100 rounded-box w-52 z-10"
         >
           <li>
-            <input
-              type="radio"
-              name="theme-dropdown"
-              className="theme-controller btn btn-sm btn-block btn-ghost justify-start text-black"
-              aria-label="Light"
-              value="light"
-              checked={theme === 'light'}
-              onChange={handleThemeChange}
-            />
+            <label className="cursor-pointer">
+              <input
+                type="radio"
+                name="theme-dropdown"
+                className="radio"
+                value="light"
+                checked={theme === 'light'}
+                onChange={handleThemeChange}
+              />
+              Light
+            </label>
           </li>
           <li>
-            <input
-              type="radio"
-              name="theme-dropdown"
-              className="theme-controller btn btn-sm btn-block btn-ghost justify-start text-black"
-              aria-label="Dark"
-              value="dark"
-              checked={theme === 'dark'}
-              onChange={handleThemeChange}
-            />
+            <label className="cursor-pointer">
+              <input
+                type="radio"
+                name="theme-dropdown"
+                className="radio"
+                value="dark"
+                checked={theme === 'dark'}
+                onChange={handleThemeChange}
+              />
+              Dark
+            </label>
           </li>
           <li>
-            <input
-              type="radio"
-              name="theme-dropdown"
-              className="theme-controller btn btn-sm btn-block btn-ghost justify-start text-black"
-              aria-label="Cupcake"
-              value="cupcake"
-              checked={theme === 'cupcake'}
-              onChange={handleThemeChange}
-            />
+            <label className="cursor-pointer">
+              <input
+                type="radio"
+                name="theme-dropdown"
+                className="radio"
+                value="cupcake"
+                checked={theme === 'cupcake'}
+                onChange={handleThemeChange}
+              />
+              Cupcake
+            </label>
           </li>
           <li>
-            <input
-              type="radio"
-              name="theme-dropdown"
-              className="theme-controller btn btn-sm btn-block btn-ghost justify-start text-black"
-              aria-label="Forest"
-              value="forest"
-              checked={theme === 'forest'}
-              onChange={handleThemeChange}
-            />
+            <label className="cursor-pointer">
+              <input
+                type="radio"
+                name="theme-dropdown"
+                className="radio"
+                value="forest"
+                checked={theme === 'forest'}
+                onChange={handleThemeChange}
+              />
+              Forest
+            </label>
           </li>
           <li>
-            <input
-              type="radio"
-              name="theme-dropdown"
-              className="theme-controller btn btn-sm btn-block btn-ghost justify-start text-black"
-              aria-label="Valentine"
-              value="valentine"
-              checked={theme === 'valentine'}
-              onChange={handleThemeChange}
-            />
+            <label className="cursor-pointer">
+              <input
+                type="radio"
+                name="theme-dropdown"
+                className="radio"
+                value="valentine"
+                checked={theme === 'valentine'}
+                onChange={handleThemeChange}
+              />
+              Valentine
+            </label>
           </li>
           <li>
-            <input
-              type="radio"
-              name="theme-dropdown"
-              className="theme-controller btn btn-sm btn-block btn-ghost justify-start text-black"
-              aria-label="Dracula"
-              value="dracula"
-              checked={theme === 'dracula'}
-              onChange={handleThemeChange}
-            />
+            <label className="cursor-pointer">
+              <input
+                type="radio"
+                name="theme-dropdown"
+                className="radio"
+                value="dracula"
+                checked={theme === 'dracula'}
+                onChange={handleThemeChange}
+              />
+              Dracula
+            </label>
           </li>
           <li>
-            <input
-              type="radio"
-              name="theme-dropdown"
-              className="theme-controller btn btn-sm btn-block btn-ghost justify-start text-black"
-              aria-label="Night"
-              value="night"
-              checked={theme === 'night'}
-              onChange={handleThemeChange}
-            />
+            <label className="cursor-pointer">
+              <input
+                type="radio"
+                name="theme-dropdown"
+                className="radio"
+                value="night"
+                checked={theme === 'night'}
+                onChange={handleThemeChange}
+              />
+              Night
+            </label>
           </li>
           <li>
-            <input
-              type="radio"
-              name="theme-dropdown"
-              className="theme-controller btn btn-sm btn-block btn-ghost justify-start text-black"
-              aria-label="Coffee"
-              value="coffee"
-              checked={theme === 'coffee'}
-              onChange={handleThemeChange}
-            />
+            <label className="cursor-pointer">
+              <input
+                type="radio"
+                name="theme-dropdown"
+                className="radio"
+                value="coffee"
+                checked={theme === 'coffee'}
+                onChange={handleThemeChange}
+              />
+              Coffee
+            </label>
           </li>
           <li>
-            <input
-              type="radio"
-              name="theme-dropdown"
-              className="theme-controller btn btn-sm btn-block btn-ghost justify-start text-black"
-              aria-label="Corporate"
-              value="corporate"
-              checked={theme === 'corporate'}
-              onChange={handleThemeChange}
-            />
+            <label className="cursor-pointer">
+              <input
+                type="radio"
+                name="theme-dropdown"
+                className="radio"
+                value="corporate"
+                checked={theme === 'corporate'}
+                onChange={handleThemeChange}
+              />
+              Corporate
+            </label>
           </li>
           <li>
-            <input
-              type="radio"
-              name="theme-dropdown"
-              className="theme-controller btn btn-sm btn-block btn-ghost justify-start text-black"
-              aria-label="Winter"
-              value="winter"
-              checked={theme === 'winter'}
-              onChange={handleThemeChange}
-            />
+            <label className="cursor-pointer">
+              <input
+                type="radio"
+                name="theme-dropdown"
+                className="radio"
+                value="winter"
+                checked={theme === 'winter'}
+                onChange={handleThemeChange}
+              />
+              Winter
+            </label>
           </li>
         </ul>
       )}

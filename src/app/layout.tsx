@@ -31,7 +31,26 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <ClerkProvider>
-          <ThemeToggle />
+          <div className="navbar bg-base-100">
+            <div className="flex-1">
+              <a className="btn btn-ghost md:block hidden text-xl">
+                Book Finder
+              </a>
+            </div>
+            <div className="flex-none">
+              <ul className="menu menu-horizontal px-1">
+                <li>
+                  <a href="/prompts">Discover</a>
+                </li>
+                <li>
+                  <a href="/reading-list">Reading List</a>
+                </li>
+                <li>
+                  <ThemeToggle />
+                </li>
+              </ul>
+            </div>
+          </div>
           {children}
         </ClerkProvider>
       </body>
