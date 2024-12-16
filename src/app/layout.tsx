@@ -32,8 +32,8 @@ export default function RootLayout({
       >
         <ClerkProvider>
           <div className="navbar bg-base-100">
-            <div className="flex-1">
-              <a className="btn btn-ghost md:block hidden text-xl">
+            <div className="flex-1 flex items-center">
+              <a href="/" className="md:block hidden text-xl">
                 Book Finder
               </a>
             </div>
@@ -44,6 +44,9 @@ export default function RootLayout({
                 </li>
                 <li>
                   <a href="/reading-list">Reading List</a>
+                </li>
+                <li>
+                  <a href="/friends">Friends</a>
                 </li>
                 <li>
                   <ThemeToggle />
