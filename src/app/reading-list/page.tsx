@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import Image from 'next/image';
+import defaultCover from '../default-cover.jpg';
 
 interface Book {
   title: string;
@@ -21,13 +22,16 @@ const ReadingPage = () => {
   const [title, setTitle] = useState('');
   const [book, setBook] = useState<Book | null>(null);
   const [confirmedBook, setConfirmedBook] = useState<Book | null>(null);
+  const [completedBooks, setCompletedBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [pagesRead, setPagesRead] = useState<number>(0);
   const [initialLoad, setInitialLoad] = useState(true);
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [showArrows, setShowArrows] = useState(true);
 
   useEffect(() => {
-    const fetchCurrentlyReading = async () => {
+    const fetchBooks = async () => {
       if (!user) return;
 
       setLoading(true);
@@ -36,7 +40,7 @@ const ReadingPage = () => {
       try {
         const response = await fetch(`/api/clerk?userId=${user.id}`);
         if (!response.ok) {
-          throw new Error('Failed to fetch currently reading book');
+          throw new Error('Failed to fetch books');
         }
         const data = await response.json();
         if (data.currentlyReading) {
@@ -46,8 +50,11 @@ const ReadingPage = () => {
             `Fetched progress: ${data.currentlyReading.progress || 0}`
           );
         }
+        if (data.completedBooks) {
+          setCompletedBooks(data.completedBooks);
+        }
       } catch (err) {
-        console.error('Error fetching currently reading book:', err);
+        console.error('Error fetching books:', err);
         setError((err as Error).message);
       } finally {
         setLoading(false);
@@ -55,7 +62,7 @@ const ReadingPage = () => {
       }
     };
 
-    fetchCurrentlyReading();
+    fetchBooks();
   }, [user]);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -85,7 +92,7 @@ const ReadingPage = () => {
     }
   };
 
-  const handleConfirm = async () => {
+  const handleConfirmCurrentlyReading = async () => {
     if (!user || !book) {
       setError('No user or book selected');
       return;
@@ -118,6 +125,45 @@ const ReadingPage = () => {
       setTitle('');
     } catch (err) {
       console.error('Error updating currently reading book:', err);
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirmCompleted = async () => {
+    if (!user || !book) {
+      setError('No user or book selected');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await fetch('/api/clerk', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          type: 'add.completedBook',
+          data: {
+            userId: user.id,
+            book,
+          },
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to add completed book');
+      }
+
+      setCompletedBooks([...completedBooks, book]);
+      setBook(null);
+      setTitle('');
+    } catch (err) {
+      console.error('Error adding completed book:', err);
       setError((err as Error).message);
     } finally {
       setLoading(false);
@@ -195,13 +241,168 @@ const ReadingPage = () => {
     }
   };
 
+  const renderCarousel = (books: Book[], idPrefix: string) => {
+    const slides = [];
+    const itemsPerSlide = 3; // 3 items on mobile, 5 on larger screens
+    for (let i = 0; i < books.length; i += itemsPerSlide) {
+      slides.push(books.slice(i, i + itemsPerSlide));
+    }
+
+    const handleDotClick = (index: number) => {
+      setCurrentSlide(index);
+      document
+        .getElementById(`${idPrefix}${index}`)
+        ?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    const handleScroll = () => {
+      const carousel = document.querySelector('.carousel');
+      const scrollLeft = carousel?.scrollLeft || 0;
+      const slideWidth = carousel?.clientWidth || 0;
+      const newIndex = Math.round(scrollLeft / slideWidth);
+      setCurrentSlide(newIndex);
+    };
+
+    return (
+      <div>
+        <div
+          className="carousel w-full overflow-x-scroll snap-x snap-mandatory"
+          onTouchStart={() => setShowArrows(false)}
+          onTouchEnd={() => setShowArrows(true)}
+          onScroll={handleScroll}
+        >
+          {slides.map((slide, index) => (
+            <div
+              id={`${idPrefix}${index}`}
+              className="carousel-item relative w-full flex justify-center snap-center"
+              key={index}
+            >
+              {slide.map((book) => (
+                <div key={book.title} className="card w-1/3 p-2 relative">
+                  <img
+                    src={book.imageLinks?.thumbnail || defaultCover.src}
+                    alt={`${book.title} cover`}
+                    className="w-full h-48 object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = defaultCover.src;
+                    }}
+                  />
+                  <div className="mt-2">
+                    <strong className="block truncate">{book.title}</strong>
+                    <p className="block truncate">
+                      {book.authors
+                        ? book.authors.join(', ')
+                        : 'Unknown Author'}
+                    </p>
+                  </div>
+                </div>
+              ))}
+              {showArrows && (
+                <div className="hidden md:flex absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
+                  <a
+                    href={`#${idPrefix}${
+                      (index - 1 + slides.length) % slides.length
+                    }`}
+                    className="btn btn-circle"
+                  >
+                    ❮
+                  </a>
+                  <a
+                    href={`#${idPrefix}${(index + 1) % slides.length}`}
+                    className="btn btn-circle"
+                  >
+                    ❯
+                  </a>
+                </div>
+              )}
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-center mt-4 md:hidden">
+          {slides.map((_, index) => (
+            <button
+              key={index}
+              className={`btn-secondary mx-1 w-2 h-2 rounded-full ${
+                currentSlide === index ? 'bg-gray-800' : 'bg-gray-400'
+              }`}
+              onClick={() => handleDotClick(index)}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   if (initialLoad) {
     return null; // Leave the page blank during the initial load
   }
 
   return (
     <div className="max-w-lg mx-auto p-5">
-      <h1 className="text-3xl font-bold mb-6 text-center">Currently Reading</h1>
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="title" className="block mb-2">
+            Add Books
+          </label>
+          <input
+            type="text"
+            id="title"
+            className="input input-bordered w-full"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
+        </div>
+        <button type="submit" className="btn btn-primary w-full">
+          Search
+        </button>
+      </form>
+      {loading && <div>Loading...</div>}
+      {error && <div className="text-red-500 mt-4">{error}</div>}
+      {book && (
+        <div className="mt-6 p-4 border rounded-lg">
+          <h2 className="text-xl font-bold mb-2">{book.title}</h2>
+          {book.imageLinks && book.imageLinks.thumbnail && (
+            <Image
+              src={book.imageLinks.thumbnail}
+              alt={`${book.title} cover`}
+              width={96}
+              height={144}
+              className="object-cover mb-2"
+            />
+          )}
+          <p>
+            <strong>Author:</strong>{' '}
+            {book.authors ? book.authors.join(', ') : 'Unknown Author'}
+          </p>
+          <p>
+            <strong>Publisher:</strong> {book.publisher || 'Unknown Publisher'}
+          </p>
+          <p>
+            <strong>Published Date:</strong>{' '}
+            {book.publishedDate || 'Unknown Date'}
+          </p>
+          <p>
+            <strong>Number of Pages:</strong> {book.pageCount || 'Unknown'}
+          </p>
+          <div className="mt-4">
+            <p className="text-lg font-semibold">Add this book to:</p>
+            <button
+              className="btn btn-success mt-2 mr-2"
+              onClick={handleConfirmCurrentlyReading}
+            >
+              Currently Reading
+            </button>
+            <button
+              className="btn btn-success mt-2"
+              onClick={handleConfirmCompleted}
+            >
+              Completed Books
+            </button>
+          </div>
+        </div>
+      )}
+      <h1 className="text-xl font-bold mb-6 mt-8">Currently Reading</h1>
       {confirmedBook ? (
         <div className="mb-6 p-4 border rounded-lg">
           <h2 className="text-xl font-bold mb-2">{confirmedBook.title}</h2>
@@ -253,62 +454,13 @@ const ReadingPage = () => {
           </button>
         </div>
       ) : (
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label htmlFor="title" className="block mb-2">
-              Book Title
-            </label>
-            <input
-              type="text"
-              id="title"
-              className="input input-bordered w-full"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-          </div>
-          <button type="submit" className="btn btn-primary w-full">
-            Search
-          </button>
-        </form>
+        <div>No book is currently being read.</div>
       )}
-      {loading && <div>Loading...</div>}
-      {error && <div className="text-red-500 mt-4">{error}</div>}
-      {book && !confirmedBook && (
-        <div className="mt-6 p-4 border rounded-lg">
-          <h2 className="text-xl font-bold mb-2">{book.title}</h2>
-          {book.imageLinks && book.imageLinks.thumbnail && (
-            <Image
-              src={book.imageLinks.thumbnail}
-              alt={`${book.title} cover`}
-              width={96}
-              height={144}
-              className="object-cover mb-2"
-            />
-          )}
-          <p>
-            <strong>Author:</strong>{' '}
-            {book.authors ? book.authors.join(', ') : 'Unknown Author'}
-          </p>
-          <p>
-            <strong>Publisher:</strong> {book.publisher || 'Unknown Publisher'}
-          </p>
-          <p>
-            <strong>Published Date:</strong>{' '}
-            {book.publishedDate || 'Unknown Date'}
-          </p>
-          <p>
-            <strong>Number of Pages:</strong> {book.pageCount || 'Unknown'}
-          </p>
-          {book.pageCount && (
-            <div className="mt-4">
-              <p className="text-lg font-semibold">Is this your book?</p>
-              <button className="btn btn-success mt-2" onClick={handleConfirm}>
-                Yes
-              </button>
-            </div>
-          )}
-        </div>
+      <h1 className="text-xl font-bold mb-6 mt-8">Completed Books</h1>
+      {completedBooks.length > 0 ? (
+        renderCarousel(completedBooks, 'completed-slide')
+      ) : (
+        <div>No completed books yet.</div>
       )}
     </div>
   );

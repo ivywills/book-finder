@@ -8,8 +8,13 @@ interface Friend {
 
 interface WebhookEvent {
   type: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  data: any;
+  data: {
+    userId?: string;
+    book?: any;
+    friendId?: string;
+    friendName?: string;
+    progress?: number;
+  };
 }
 
 const client = new MongoClient(process.env.MONGODB_URI!);
@@ -50,8 +55,8 @@ export async function GET(req: NextRequest) {
   }
 }
 
-export async function POST(request: Request) {
-  const payload: WebhookEvent = await request.json();
+export async function POST(req: NextRequest) {
+  const payload: WebhookEvent = await req.json();
 
   await client.connect();
   const db = client.db('bookfinder');
@@ -92,18 +97,19 @@ export async function POST(request: Request) {
     const { userId, friendId, friendName } = payload.data;
     await usersCollection.updateOne(
       { id: userId },
-      { $addToSet: { friends: { id: friendId, name: friendName } as Friend } },
+      { $addToSet: { friends: { id: friendId, name: friendName } } },
       { upsert: true }
     );
   } else if (payload.type === 'remove.friend') {
     const { userId, friendId } = payload.data;
-    await usersCollection.updateOne(
-      { id: userId },
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      { $pull: { friends: { id: friendId } as any } }
-    );
+    if (friendId) {
+      await usersCollection.updateOne(
+        { id: userId },
+        { $pull: { friends: { id: friendId } } }
+      );
+    }
   }
 
   console.log(payload);
-  return new Response(JSON.stringify({ message: 'Received' }), { status: 200 });
+  return NextResponse.json({ message: 'Received' }, { status: 200 });
 }

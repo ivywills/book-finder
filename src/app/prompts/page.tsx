@@ -28,6 +28,7 @@ const HomePage = () => {
   const [prompt, setPrompt] = useState('');
   const [result, setResult] = useState<{ books: Book[] } | null>(null);
   const [favorites, setFavorites] = useState<Book[]>([]);
+  const [completedBooks, setCompletedBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showArrows, setShowArrows] = useState(true);
@@ -210,7 +211,7 @@ const HomePage = () => {
 
     try {
       const userId = user.id;
-      const response = await fetch('/api/clerk', {
+      const response = await fetch(`/api/clerk?userId=${userId}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -434,6 +435,12 @@ const HomePage = () => {
         <div>
           <h2>Favorites:</h2>
           {renderCarousel(favorites, 'favorite-slide')}
+        </div>
+      )}
+      {completedBooks.length > 0 && (
+        <div>
+          <h2>Completed Books:</h2>
+          {renderCarousel(completedBooks, 'completed-slide')}
         </div>
       )}
       {error && (
