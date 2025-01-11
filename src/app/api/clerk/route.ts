@@ -42,12 +42,23 @@ export async function GET(req: NextRequest) {
 
     console.log('Fetched user profile:', user);
 
+    const friendsDetails = await Promise.all(
+      (user.friends || []).map(async (friend: Friend) => {
+        const friendDetails = await usersCollection.findOne({ id: friend.id });
+        return {
+          id: friend.id,
+          name: friendDetails?.firstName + ' ' + friendDetails?.lastName || friend.name,
+          email: friendDetails?.email,
+        };
+      })
+    );
+
     const userProfile = {
       id: user.id,
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
-      friends: user.friends || [] as Friend[],
+      friends: friendsDetails,
     };
 
     return NextResponse.json({ userProfile }, { status: 200 });

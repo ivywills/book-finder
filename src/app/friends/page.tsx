@@ -2,10 +2,12 @@
 
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
+import Link from 'next/link';
 
 interface Friend {
   id: string;
   name?: string;
+  email?: string;
 }
 
 const FriendsPage = () => {
@@ -118,12 +120,15 @@ const FriendsPage = () => {
       {loading && <div>Loading...</div>}
       {error && <div className="text-red-500 mt-4">{error}</div>}
       {(friends ?? []).length === 0 ? (
-        <></>
+        <div>No friends added yet.</div>
       ) : (
         <ul className="list-disc pl-5">
           {friends.map((friend) => (
             <li key={friend.id}>
-              {friend.name || friend.id}
+              <Link href={`/connect/${friend.id}`} legacyBehavior>
+                <a className="text-blue-500">{friend.name || friend.id}</a>
+              </Link>
+              {friend.email && <p>Email: {friend.email}</p>}
               <button
                 className="btn btn-sm btn-danger ml-2"
                 onClick={() => handleRemoveFriend(friend.id)}
