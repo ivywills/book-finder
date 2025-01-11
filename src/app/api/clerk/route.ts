@@ -1,5 +1,3 @@
-// @ts-nocheck
-
 import { NextRequest, NextResponse } from 'next/server';
 import { MongoClient } from 'mongodb';
 
@@ -12,10 +10,17 @@ interface WebhookEvent {
   type: string;
   data: {
     userId?: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     book?: any;
     friendId?: string;
     friendName?: string;
     progress?: number;
+    user?: {
+      id: string;
+      email_addresses: { email_address: string }[];
+      first_name: string;
+      last_name: string;
+    };
   };
 }
 
@@ -69,6 +74,7 @@ export async function GET(req: NextRequest) {
 }
 
 export async function POST(req: NextRequest) {
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const payload: WebhookEvent = await req.json();
 
   await client.connect();
@@ -76,14 +82,16 @@ export async function POST(req: NextRequest) {
   const usersCollection = db.collection('users');
 
   if (payload.type === 'user.created') {
-    const user = payload.data;
-    await usersCollection.insertOne({
-      id: user.id,
-      email: user.email_addresses[0].email_address,
-      firstName: user.first_name,
-      lastName: user.last_name,
-      createdAt: new Date(),
-    });
+    const user = payload.data.user;
+    if (user) {
+      await usersCollection.insertOne({
+        id: user.id,
+        email: user.email_addresses[0].email_address,
+        firstName: user.first_name,
+        lastName: user.last_name,
+        createdAt: new Date(),
+      });
+    }
   } else if (payload.type === 'add.favorite') {
     const { userId, book } = payload.data;
     await usersCollection.updateOne(
@@ -118,6 +126,7 @@ export async function POST(req: NextRequest) {
     if (friendId) {
       await usersCollection.updateOne(
         { id: userId },
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
         { $pull: { friends: { id: friendId } as any } }
       );
     }
