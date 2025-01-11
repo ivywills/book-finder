@@ -5,7 +5,7 @@ import { useUser } from '@clerk/nextjs';
 
 interface Friend {
   id: string;
-  name: string;
+  name?: string;
 }
 
 const FriendsPage = () => {
@@ -15,6 +15,7 @@ const FriendsPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [shareLink, setShareLink] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [newFriendId, setNewFriendId] = useState('');
 
   useEffect(() => {
     const fetchFriends = async () => {
@@ -24,12 +25,12 @@ const FriendsPage = () => {
       setError(null);
 
       try {
-        const response = await fetch(`/api/user-profile?userId=${user.id}`);
+        const response = await fetch(`/api/clerk?userId=${user.id}`);
         if (!response.ok) {
           throw new Error('Failed to fetch friends');
         }
         const data = await response.json();
-        setFriends(data.friends ?? []);
+        setFriends(data.userProfile.friends ?? []);
       } catch (err) {
         console.error('Error fetching friends:', err);
         setError((err as Error).message);
@@ -52,12 +53,11 @@ const FriendsPage = () => {
     }
   };
 
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  const handleAddFriend = async (friendId: string, friendName: string) => {
+  const handleAddFriend = async (friendId: string) => {
     if (!user) return;
 
     try {
-      const response = await fetch('/api/user-profile', {
+      const response = await fetch('/api/clerk', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -67,7 +67,6 @@ const FriendsPage = () => {
           data: {
             userId: user.id,
             friendId,
-            friendName,
           },
         }),
       });
@@ -76,7 +75,8 @@ const FriendsPage = () => {
         throw new Error('Failed to add friend');
       }
 
-      setFriends([...friends, { id: friendId, name: friendName }]);
+      setFriends([...friends, { id: friendId }]);
+      setNewFriendId('');
     } catch (err) {
       console.error('Error adding friend:', err);
       setError((err as Error).message);
@@ -87,7 +87,7 @@ const FriendsPage = () => {
     if (!user) return;
 
     try {
-      const response = await fetch('/api/user-profile', {
+      const response = await fetch('/api/clerk', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -118,12 +118,12 @@ const FriendsPage = () => {
       {loading && <div>Loading...</div>}
       {error && <div className="text-red-500 mt-4">{error}</div>}
       {(friends ?? []).length === 0 ? (
-        <div>No friends added yet.</div>
+        <></>
       ) : (
         <ul className="list-disc pl-5">
           {friends.map((friend) => (
             <li key={friend.id}>
-              {friend.name}
+              {friend.name || friend.id}
               <button
                 className="btn btn-sm btn-danger ml-2"
                 onClick={() => handleRemoveFriend(friend.id)}
@@ -134,8 +134,24 @@ const FriendsPage = () => {
           ))}
         </ul>
       )}
+      <div className="mt-6">
+        <h2 className="text-xl font-bold mb-4">Add a New Friend</h2>
+        <input
+          type="text"
+          placeholder="Friend ID"
+          className="input input-bordered w-full mb-2"
+          value={newFriendId}
+          onChange={(e) => setNewFriendId(e.target.value)}
+        />
+        <button
+          className="btn btn-primary w-full"
+          onClick={() => handleAddFriend(newFriendId)}
+        >
+          Add Friend
+        </button>
+      </div>
       <button className="btn btn-primary mt-4" onClick={handleGetShareLink}>
-        Get Share Link
+        Friend Link
       </button>
       {shareLink && (
         <div className="mt-4">
