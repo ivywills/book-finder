@@ -43,15 +43,18 @@ const ReadingPage = () => {
           throw new Error('Failed to fetch books');
         }
         const data = await response.json();
-        if (data.currentlyReading) {
-          setConfirmedBook(data.currentlyReading.book);
-          setPagesRead(data.currentlyReading.progress || 0);
+        console.log('Fetched data:', data); // Debugging line
+        if (data.userProfile.currentlyReading) {
+          setConfirmedBook(data.userProfile.currentlyReading.book);
+          setPagesRead(data.userProfile.currentlyReading.progress || 0);
           console.log(
-            `Fetched progress: ${data.currentlyReading.progress || 0}`
+            `Fetched progress: ${
+              data.userProfile.currentlyReading.progress || 0
+            }`
           );
         }
-        if (data.completedBooks) {
-          setCompletedBooks(data.completedBooks);
+        if (data.userProfile.completedBooks) {
+          setCompletedBooks(data.userProfile.completedBooks);
         }
       } catch (err) {
         console.error('Error fetching books:', err);

@@ -65,6 +65,8 @@ export async function GET(req: NextRequest) {
       email: user.email,
       friends: friendsDetails,
       favorites: user.favorites || [], // Ensure favorites is included in the response
+      currentlyReading: user.currentlyReading || null, // Ensure currentlyReading is included in the response
+      completedBooks: user.completedBooks || [], // Ensure completedBooks is included in the response
     };
 
     return NextResponse.json({ userProfile }, { status: 200 });
@@ -92,6 +94,8 @@ export async function POST(req: NextRequest) {
         lastName: user.last_name,
         createdAt: new Date(),
         favorites: [], // Initialize favorites as an empty array
+        currentlyReading: null, // Initialize currentlyReading as null
+        completedBooks: [], // Initialize completedBooks as an empty array
       });
     }
   } else if (payload.type === 'add.favorite') {
@@ -105,19 +109,31 @@ export async function POST(req: NextRequest) {
     console.log('Update result:', result); // Debugging line
   } else if (payload.type === 'add.currentlyReading') {
     const { userId, book } = payload.data;
-    await usersCollection.updateOne(
+    console.log('Adding currently reading book:', book); // Debugging line
+    const result = await usersCollection.updateOne(
       { id: userId },
       { $set: { currentlyReading: { book, progress: 0 } } },
       { upsert: true }
     );
+    console.log('Update result:', result); // Debugging line
   } else if (payload.type === 'update.readingProgress') {
     const { userId, book, progress } = payload.data;
-    await usersCollection.updateOne(
+    console.log(`Updating progress for ${book}: ${progress}`); // Debugging line
+    const result = await usersCollection.updateOne(
       { id: userId, 'currentlyReading.book.title': book },
       { $set: { 'currentlyReading.progress': progress } },
       { upsert: true }
     );
-    console.log(`Updated progress for ${book}: ${progress}`);
+    console.log('Update result:', result); // Debugging line
+  } else if (payload.type === 'add.completedBook') {
+    const { userId, book } = payload.data;
+    console.log('Adding completed book:', book); // Debugging line
+    const result = await usersCollection.updateOne(
+      { id: userId },
+      { $addToSet: { completedBooks: book } },
+      { upsert: true }
+    );
+    console.log('Update result:', result); // Debugging line
   } else if (payload.type === 'add.friend') {
     const { userId, friendId, friendName } = payload.data;
     await usersCollection.updateOne(
@@ -134,6 +150,14 @@ export async function POST(req: NextRequest) {
         { $pull: { friends: { id: friendId } as any } }
       );
     }
+  } else if (payload.type === 'remove.currentlyReading') {
+    const { userId } = payload.data;
+    console.log('Removing currently reading book for user:', userId); // Debugging line
+    const result = await usersCollection.updateOne(
+      { id: userId },
+      { $unset: { currentlyReading: "" } }
+    );
+    console.log('Update result:', result); // Debugging line
   }
 
   console.log(payload);
