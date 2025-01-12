@@ -64,6 +64,7 @@ export async function GET(req: NextRequest) {
       lastName: user.lastName,
       email: user.email,
       friends: friendsDetails,
+      favorites: user.favorites || [], // Ensure favorites is included in the response
     };
 
     return NextResponse.json({ userProfile }, { status: 200 });
@@ -90,15 +91,18 @@ export async function POST(req: NextRequest) {
         firstName: user.first_name,
         lastName: user.last_name,
         createdAt: new Date(),
+        favorites: [], // Initialize favorites as an empty array
       });
     }
   } else if (payload.type === 'add.favorite') {
     const { userId, book } = payload.data;
-    await usersCollection.updateOne(
+    console.log('Adding favorite book:', book); // Debugging line
+    const result = await usersCollection.updateOne(
       { id: userId },
       { $addToSet: { favorites: book } },
       { upsert: true }
     );
+    console.log('Update result:', result); // Debugging line
   } else if (payload.type === 'add.currentlyReading') {
     const { userId, book } = payload.data;
     await usersCollection.updateOne(

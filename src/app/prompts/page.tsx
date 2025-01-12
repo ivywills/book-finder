@@ -60,14 +60,23 @@ const HomePage = () => {
 
       try {
         const userId = user.id;
+        console.log('Fetching favorites for user:', userId); // Debugging line
         const response = await fetch(`/api/clerk?userId=${userId}`);
         if (!response.ok) {
           throw new Error('Failed to fetch favorites');
         }
         const data = await response.json();
-        const updatedFavorites = await fetchImages(data.favorites);
-        setFavorites(updatedFavorites);
-        console.log('Favorite Books:', updatedFavorites);
+        console.log('Fetched data:', data); // Debugging line
+        if (data.userProfile && data.userProfile.favorites) {
+          const updatedFavorites = await fetchImages(
+            data.userProfile.favorites
+          );
+          setFavorites(updatedFavorites);
+          console.log('Favorite Books:', updatedFavorites);
+        } else {
+          console.error('No favorites found for user');
+          setError('No favorites found for user');
+        }
       } catch (error) {
         console.error('Error fetching favorites:', error);
         setError('Failed to fetch favorites');
@@ -210,6 +219,7 @@ const HomePage = () => {
 
     try {
       const userId = user.id;
+      console.log('Adding to favorites:', book); // Debugging line
       const response = await fetch(`/api/clerk?userId=${userId}`, {
         method: 'POST',
         headers: {
@@ -229,6 +239,7 @@ const HomePage = () => {
           return [...prevFavorites, book];
         }
       });
+      console.log('Updated favorites:', favorites); // Debugging line
     } catch (error) {
       console.error('Error adding favorite:', error);
     }
@@ -438,7 +449,6 @@ const HomePage = () => {
       )}
       {error && (
         <div className="text-red-500 mt-5">
-          <h2>Error:</h2>
           <p>{error}</p>
         </div>
       )}
