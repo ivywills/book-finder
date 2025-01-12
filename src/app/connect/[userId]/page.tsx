@@ -3,6 +3,20 @@
 import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
+import Image from 'next/image';
+import defaultCover from '../default-cover.jpg';
+
+interface Book {
+  title: string;
+  authors?: string[];
+  publisher?: string;
+  publishedDate?: string;
+  description?: string;
+  pageCount?: number;
+  imageLinks?: {
+    thumbnail?: string;
+  };
+}
 
 interface UserProfile {
   id: string;
@@ -10,6 +24,11 @@ interface UserProfile {
   lastName: string;
   email: string;
   friends: { id: string; name: string }[];
+  currentlyReading?: {
+    book: Book;
+    progress: number;
+  };
+  completedBooks?: Book[];
 }
 
 const UserProfilePage = () => {
@@ -87,7 +106,7 @@ const UserProfilePage = () => {
     if (!user || !userProfile) return;
 
     try {
-      const response = await fetch('/api/user-profile', {
+      const response = await fetch('/api/clerk', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -130,12 +149,89 @@ const UserProfilePage = () => {
         {userProfile.firstName} {userProfile.lastName}
       </h1>
       <p>Email: {userProfile.email}</p>
-      <h2 className="text-2xl font-bold mt-6">Friends</h2>
       <ul className="list-disc pl-5">
         {userProfile.friends.map((friend) => (
           <li key={friend.id}>{friend.name}</li>
         ))}
       </ul>
+      <h2 className="text-2xl font-bold mt-6">Currently Reading</h2>
+      {userProfile.currentlyReading ? (
+        <div className="mb-6 p-4 border rounded-lg">
+          <h3 className="text-xl font-bold mb-2">
+            {userProfile.currentlyReading.book.title}
+          </h3>
+          {userProfile.currentlyReading.book.imageLinks &&
+            userProfile.currentlyReading.book.imageLinks.thumbnail && (
+              <Image
+                src={userProfile.currentlyReading.book.imageLinks.thumbnail}
+                alt={`${userProfile.currentlyReading.book.title} cover`}
+                width={96}
+                height={144}
+                className="object-cover mb-2"
+              />
+            )}
+          <p>
+            <strong>Author:</strong>{' '}
+            {userProfile.currentlyReading.book.authors
+              ? userProfile.currentlyReading.book.authors.join(', ')
+              : 'Unknown Author'}
+          </p>
+          <p>
+            <strong>Publisher:</strong>{' '}
+            {userProfile.currentlyReading.book.publisher || 'Unknown Publisher'}
+          </p>
+          <p>
+            <strong>Published Date:</strong>{' '}
+            {userProfile.currentlyReading.book.publishedDate || 'Unknown Date'}
+          </p>
+          <p>
+            <strong>Number of Pages:</strong>{' '}
+            {userProfile.currentlyReading.book.pageCount || 'Unknown'}
+          </p>
+          <p>
+            <strong>Progress:</strong> {userProfile.currentlyReading.progress}{' '}
+            pages read
+          </p>
+        </div>
+      ) : (
+        <div>No book is currently being read.</div>
+      )}
+      <h2 className="text-2xl font-bold mt-6">Completed Books</h2>
+      {userProfile.completedBooks && userProfile.completedBooks.length > 0 ? (
+        <ul className="list-disc pl-5">
+          {userProfile.completedBooks.map((book, index) => (
+            <li key={index} className="mb-4">
+              <h3 className="text-xl font-bold">{book.title}</h3>
+              {book.imageLinks && book.imageLinks.thumbnail && (
+                <Image
+                  src={book.imageLinks.thumbnail}
+                  alt={`${book.title} cover`}
+                  width={96}
+                  height={144}
+                  className="object-cover mb-2"
+                />
+              )}
+              <p>
+                <strong>Author:</strong>{' '}
+                {book.authors ? book.authors.join(', ') : 'Unknown Author'}
+              </p>
+              <p>
+                <strong>Publisher:</strong>{' '}
+                {book.publisher || 'Unknown Publisher'}
+              </p>
+              <p>
+                <strong>Published Date:</strong>{' '}
+                {book.publishedDate || 'Unknown Date'}
+              </p>
+              <p>
+                <strong>Number of Pages:</strong> {book.pageCount || 'Unknown'}
+              </p>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <div>No completed books yet.</div>
+      )}
       {user && user.id !== userProfile.id && (
         <div className="mt-6">
           {isFriend ? (
