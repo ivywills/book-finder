@@ -4,7 +4,6 @@ import { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
 import { useUser } from '@clerk/nextjs';
 import Image from 'next/image';
-import defaultCover from '../default-cover.jpg';
 
 interface Book {
   title: string;
