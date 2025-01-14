@@ -29,6 +29,11 @@ const client = new MongoClient(process.env.MONGODB_URI!);
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const userId = searchParams.get('userId');
+  const email = searchParams.get('email');
+
+  if (email) {
+    return getUserIdByEmail(email);
+  }
 
   if (!userId) {
     return NextResponse.json({ error: 'User ID is required' }, { status: 400 });
@@ -73,6 +78,25 @@ export async function GET(req: NextRequest) {
   } catch (error) {
     console.error('Error fetching user profile:', error);
     return NextResponse.json({ error: 'Failed to fetch user profile' }, { status: 500 });
+  }
+}
+
+async function getUserIdByEmail(email: string) {
+  try {
+    await client.connect();
+    const db = client.db('bookfinder');
+    const usersCollection = db.collection('users');
+
+    const user = await usersCollection.findOne({ email });
+
+    if (!user) {
+      return NextResponse.json({ error: 'User not found' }, { status: 404 });
+    }
+
+    return NextResponse.json({ userId: user.id }, { status: 200 });
+  } catch (error) {
+    console.error('Error fetching user ID by email:', error);
+    return NextResponse.json({ error: 'Failed to fetch user ID' }, { status: 500 });
   }
 }
 

@@ -17,7 +17,7 @@ const FriendsPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [shareLink, setShareLink] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
-  const [newFriendId, setNewFriendId] = useState('');
+  const [newFriendEmail, setNewFriendEmail] = useState('');
 
   useEffect(() => {
     const fetchFriends = async () => {
@@ -55,10 +55,18 @@ const FriendsPage = () => {
     }
   };
 
-  const handleAddFriend = async (friendId: string) => {
+  const handleAddFriend = async (friendEmail: string) => {
     if (!user) return;
 
     try {
+      // Fetch the user ID associated with the email
+      const userIdResponse = await fetch(`/api/clerk?email=${friendEmail}`);
+      if (!userIdResponse.ok) {
+        throw new Error('Failed to fetch user ID');
+      }
+      const { userId: friendId } = await userIdResponse.json();
+
+      // Add the friend using the fetched user ID
       const response = await fetch('/api/clerk', {
         method: 'POST',
         headers: {
@@ -77,8 +85,8 @@ const FriendsPage = () => {
         throw new Error('Failed to add friend');
       }
 
-      setFriends([...friends, { id: friendId }]);
-      setNewFriendId('');
+      setFriends([...friends, { id: friendId, email: friendEmail }]);
+      setNewFriendEmail('');
     } catch (err) {
       console.error('Error adding friend:', err);
       setError((err as Error).message);
@@ -143,14 +151,14 @@ const FriendsPage = () => {
         <h2 className="text-xl font-bold mb-4">Add a New Friend</h2>
         <input
           type="text"
-          placeholder="Friend ID"
+          placeholder="Friend Email"
           className="input input-bordered w-full mb-2"
-          value={newFriendId}
-          onChange={(e) => setNewFriendId(e.target.value)}
+          value={newFriendEmail}
+          onChange={(e) => setNewFriendEmail(e.target.value)}
         />
         <button
           className="btn btn-primary w-full"
-          onClick={() => handleAddFriend(newFriendId)}
+          onClick={() => handleAddFriend(newFriendEmail)}
         >
           Add Friend
         </button>
