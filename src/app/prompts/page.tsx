@@ -34,6 +34,10 @@ const HomePage = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [theme, setTheme] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
+  const [view, setView] = useState<'carousel' | 'list'>('carousel');
+  const [favoritesView, setFavoritesView] = useState<'carousel' | 'list'>(
+    'carousel'
+  );
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -403,9 +407,56 @@ const HomePage = () => {
     );
   };
 
+  const renderList = (books: Book[]) => {
+    return (
+      <ul className="pl-5">
+        {books.map((book) => (
+          <li key={book.isbn} className="mb-4">
+            <div className="flex items-center">
+              <img
+                src={
+                  typeof book.image === 'string' ? book.image : defaultCover.src
+                }
+                alt={`${book.name} cover`}
+                className="w-16 h-24 object-cover mr-4"
+                onError={(e) => {
+                  e.currentTarget.src = defaultCover.src;
+                }}
+              />
+              <div>
+                <Link href={`/prompts/${encodeURIComponent(book.name)}`}>
+                  <strong className="block truncate">{book.name}</strong>
+                </Link>
+                <p className="block truncate">{book.author}</p>
+                {book.averageRating !== null && (
+                  <div className="flex items-center">
+                    {renderStars(book.averageRating)}
+                    <span className="ml-2 text-sm text-gray-600">
+                      {book.ratingsCount ? `(${book.ratingsCount})` : ''}
+                    </span>
+                  </div>
+                )}
+                <button
+                  onClick={() => addToFavorites(book)}
+                  className="text-2xl px-2"
+                  title="Add to Favorites"
+                >
+                  <FontAwesomeIcon
+                    icon={isFavorite(book) ? solidHeart : regularHeart}
+                    className={isFavorite(book) ? 'text-red-500' : 'text-white'}
+                  />
+                </button>
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    );
+  };
+
   return (
     <div className="min-h-screen max-w-lg mx-auto p-5">
-      <h1 className="text-3xl font-bold mb-6 text-center">Book Finder</h1>
+      <h1 className="font-bold mb-6">Book Finder</h1>
       <label htmlFor="prompt" className="block mb-2">
         Please enter some books you like:
       </label>
@@ -437,14 +488,42 @@ const HomePage = () => {
       </form>
       {result && (
         <div className="mt-5">
-          <h2>Suggested Reads:</h2>
-          {renderCarousel(result.books, 'result-slide')}
+          <h2 className="mb-4">Suggested Reads:</h2>
+          {view === 'carousel'
+            ? renderCarousel(result.books, 'result-slide')
+            : renderList(result.books)}
+          <div className="mt-2 flex justify-end">
+            <button
+              className={`btn btn-xs ${
+                view === 'carousel' ? 'btn-primary' : 'btn-secondary'
+              }`}
+              onClick={() => setView(view === 'carousel' ? 'list' : 'carousel')}
+            >
+              {view === 'carousel' ? 'List View' : 'Carousel View'}
+            </button>
+          </div>
         </div>
       )}
       {favorites.length > 0 && (
-        <div>
-          <h2>Favorites:</h2>
-          {renderCarousel(favorites, 'favorite-slide')}
+        <div className="mt-5">
+          <h2 className="mb-4">Favorites:</h2>
+          {favoritesView === 'carousel'
+            ? renderCarousel(favorites, 'favorite-slide')
+            : renderList(favorites)}
+          <div className="mt-2 flex justify-end">
+            <button
+              className={`btn btn-xs ${
+                favoritesView === 'carousel' ? 'btn-primary' : 'btn-secondary'
+              }`}
+              onClick={() =>
+                setFavoritesView(
+                  favoritesView === 'carousel' ? 'list' : 'carousel'
+                )
+              }
+            >
+              {favoritesView === 'carousel' ? 'List View' : 'Carousel View'}
+            </button>
+          </div>
         </div>
       )}
       {error && (

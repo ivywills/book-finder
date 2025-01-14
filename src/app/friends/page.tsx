@@ -134,12 +134,30 @@ const FriendsPage = () => {
 
   return (
     <div className="max-w-lg mx-auto p-5">
-      <h1 className="text-3xl font-bold mb-6 text-center">Friends</h1>
+      <div className="mt-6">
+        <h2 className="font-bold my-6 text-xl">Add a New Friend</h2>
+        <div className="flex space-x-2">
+          <input
+            type="text"
+            placeholder="Friend Email"
+            className="input input-bordered w-full"
+            value={newFriendEmail}
+            onChange={(e) => setNewFriendEmail(e.target.value)}
+          />
+          <button
+            className="btn btn-primary"
+            onClick={() => handleAddFriend(newFriendEmail)}
+          >
+            Add Friend
+          </button>
+        </div>
+      </div>
+      <h1 className="font-bold my-6 text-xl">Friends</h1>
       {loading ? (
         <div>Loading...</div>
       ) : (
         <>
-          {error && <div className="text-red-500 mt-4">{error}</div>}
+          {error && <div className="text-red-500">{error}</div>}
           {(friends ?? []).length === 0 ? (
             <div>No friends added yet.</div>
           ) : (
@@ -168,25 +186,12 @@ const FriendsPage = () => {
           )}
         </>
       )}
-      <div className="mt-6">
-        <h2 className="text-xl font-bold mb-4">Add a New Friend</h2>
-        <input
-          type="text"
-          placeholder="Friend Email"
-          className="input input-bordered w-full mb-2"
-          value={newFriendEmail}
-          onChange={(e) => setNewFriendEmail(e.target.value)}
-        />
-        <button
-          className="btn btn-primary w-full"
-          onClick={() => handleAddFriend(newFriendEmail)}
-        >
-          Add Friend
-        </button>
-      </div>
+
+      <h2 className="font-bold my-4 text-xl">Share your account</h2>
       <button className="btn btn-primary mt-4" onClick={handleGetShareLink}>
         Friend Link
       </button>
+
       {shareLink && (
         <div className="mt-4">
           <p>Share this link with your friends:</p>
