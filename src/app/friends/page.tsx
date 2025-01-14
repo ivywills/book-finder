@@ -13,7 +13,7 @@ interface Friend {
 const FriendsPage = () => {
   const { user } = useUser();
   const [friends, setFriends] = useState<Friend[]>([]);
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [shareLink, setShareLink] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
@@ -122,30 +122,51 @@ const FriendsPage = () => {
     }
   };
 
+  const getDisplayName = (friend: Friend) => {
+    if (friend.name) {
+      return friend.name;
+    }
+    if (friend.email) {
+      return friend.email.split('@')[0];
+    }
+    return friend.id;
+  };
+
   return (
     <div className="max-w-lg mx-auto p-5">
       <h1 className="text-3xl font-bold mb-6 text-center">Friends</h1>
-      {loading && <div>Loading...</div>}
-      {error && <div className="text-red-500 mt-4">{error}</div>}
-      {(friends ?? []).length === 0 ? (
-        <div>No friends added yet.</div>
+      {loading ? (
+        <div>Loading...</div>
       ) : (
-        <ul className="list-disc pl-5">
-          {friends.map((friend) => (
-            <li key={friend.id}>
-              <Link href={`/connect/${friend.id}`} legacyBehavior>
-                <a className="text-blue-500">{friend.name || friend.id}</a>
-              </Link>
-              {friend.email && <p>Email: {friend.email}</p>}
-              <button
-                className="btn btn-sm btn-danger ml-2"
-                onClick={() => handleRemoveFriend(friend.id)}
-              >
-                Remove
-              </button>
-            </li>
-          ))}
-        </ul>
+        <>
+          {error && <div className="text-red-500 mt-4">{error}</div>}
+          {(friends ?? []).length === 0 ? (
+            <div>No friends added yet.</div>
+          ) : (
+            <ul className="list-disc pl-5">
+              {friends.map((friend) => (
+                <li key={friend.id}>
+                  <Link href={`/connect/${friend.id}`} legacyBehavior>
+                    <a className="text-blue-500">
+                      {friend.name &&
+                      friend.name !== 'null null' &&
+                      friend.name.length > 1
+                        ? friend.name
+                        : friend.email?.split('@')[0] ?? ''}
+                    </a>
+                  </Link>
+                  {friend.email && <p>Email: {friend.email}</p>}
+                  <button
+                    className="btn btn-sm btn-danger ml-2"
+                    onClick={() => handleRemoveFriend(friend.id)}
+                  >
+                    Remove
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </>
       )}
       <div className="mt-6">
         <h2 className="text-xl font-bold mb-4">Add a New Friend</h2>
