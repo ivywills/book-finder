@@ -122,16 +122,6 @@ const FriendsPage = () => {
     }
   };
 
-  const getDisplayName = (friend: Friend) => {
-    if (friend.name) {
-      return friend.name;
-    }
-    if (friend.email) {
-      return friend.email.split('@')[0];
-    }
-    return friend.id;
-  };
-
   return (
     <div className="max-w-lg mx-auto p-5">
       <div className="mt-6">
