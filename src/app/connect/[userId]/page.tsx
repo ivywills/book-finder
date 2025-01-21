@@ -37,6 +37,7 @@ const UserProfilePage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [isFriend, setIsFriend] = useState(false);
+  const [currentSlide, setCurrentSlide] = useState(0);
 
   useEffect(() => {
     const fetchUserProfile = async () => {
@@ -130,6 +131,79 @@ const UserProfilePage = () => {
     }
   };
 
+  const renderCarousel = (books: Book[]) => {
+    const slides = [];
+    const itemsPerSlide = 3; // Adjust the number of items per slide as needed
+    for (let i = 0; i < books.length; i += itemsPerSlide) {
+      slides.push(books.slice(i, i + itemsPerSlide));
+    }
+
+    const handleDotClick = (index: number) => {
+      document
+        .getElementById(`completed-slide${index}`)
+        ?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    const handleScroll = () => {
+      const carousel = document.querySelector('.carousel');
+      const scrollLeft = carousel?.scrollLeft || 0;
+      const slideWidth = carousel?.clientWidth || 0;
+      const newIndex = Math.round(scrollLeft / slideWidth);
+      setCurrentSlide(newIndex);
+    };
+
+    return (
+      <div>
+        <div
+          className="carousel w-full overflow-x-scroll snap-x snap-mandatory"
+          onScroll={handleScroll}
+        >
+          {slides.map((slide, index) => (
+            <div
+              id={`completed-slide${index}`}
+              className="carousel-item relative w-full flex justify-center snap-center"
+              key={index}
+            >
+              {slide.map((book, bookIndex) => (
+                <div key={bookIndex} className="card w-1/3 p-2 relative">
+                  <h3 className="text-xl font-bold">{book.title}</h3>
+                  {book.imageLinks && book.imageLinks.thumbnail && (
+                    <Image
+                      src={book.imageLinks.thumbnail}
+                      alt={`${book.title} cover`}
+                      width={96}
+                      height={144}
+                      className="object-cover mb-2"
+                    />
+                  )}
+                  <p>
+                    <strong>Author:</strong>{' '}
+                    {book.authors ? book.authors.join(', ') : 'Unknown Author'}
+                  </p>
+                  <p>
+                    <strong>Number of Pages:</strong>{' '}
+                    {book.pageCount || 'Unknown'}
+                  </p>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+        <div className="flex justify-center mt-4">
+          {slides.map((_, index) => (
+            <button
+              key={index}
+              className={`btn-secondary mx-1 w-2 h-2 rounded-full ${
+                currentSlide === index ? 'bg-gray-800' : 'bg-gray-400'
+              }`}
+              onClick={() => handleDotClick(index)}
+            />
+          ))}
+        </div>
+      </div>
+    );
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -148,6 +222,7 @@ const UserProfilePage = () => {
         {userProfile.firstName} {userProfile.lastName}
       </h1>
       <p>Email: {userProfile.email}</p>
+      <p className="mt-2">Friends:</p>
       <ul className="list-disc pl-5">
         {userProfile.friends.map((friend) => (
           <li key={friend.id}>{friend.name}</li>
@@ -197,37 +272,7 @@ const UserProfilePage = () => {
       )}
       <h2 className="text-2xl font-bold mt-6">Completed Books</h2>
       {userProfile.completedBooks && userProfile.completedBooks.length > 0 ? (
-        <ul className="list-disc pl-5">
-          {userProfile.completedBooks.map((book, index) => (
-            <li key={index} className="mb-4">
-              <h3 className="text-xl font-bold">{book.title}</h3>
-              {book.imageLinks && book.imageLinks.thumbnail && (
-                <Image
-                  src={book.imageLinks.thumbnail}
-                  alt={`${book.title} cover`}
-                  width={96}
-                  height={144}
-                  className="object-cover mb-2"
-                />
-              )}
-              <p>
-                <strong>Author:</strong>{' '}
-                {book.authors ? book.authors.join(', ') : 'Unknown Author'}
-              </p>
-              <p>
-                <strong>Publisher:</strong>{' '}
-                {book.publisher || 'Unknown Publisher'}
-              </p>
-              <p>
-                <strong>Published Date:</strong>{' '}
-                {book.publishedDate || 'Unknown Date'}
-              </p>
-              <p>
-                <strong>Number of Pages:</strong> {book.pageCount || 'Unknown'}
-              </p>
-            </li>
-          ))}
-        </ul>
+        renderCarousel(userProfile.completedBooks)
       ) : (
         <div>No completed books yet.</div>
       )}
