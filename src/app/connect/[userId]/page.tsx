@@ -166,7 +166,6 @@ const UserProfilePage = () => {
             >
               {slide.map((book, bookIndex) => (
                 <div key={bookIndex} className="card w-1/3 p-2 relative">
-                  <h3 className="text-xl font-bold">{book.title}</h3>
                   {book.imageLinks && book.imageLinks.thumbnail && (
                     <Image
                       src={book.imageLinks.thumbnail}
@@ -177,7 +176,9 @@ const UserProfilePage = () => {
                     />
                   )}
                   <p>
-                    <strong>Author:</strong>{' '}
+                    <strong>{book.title}</strong>{' '}
+                  </p>
+                  <p>
                     {book.authors ? book.authors.join(', ') : 'Unknown Author'}
                   </p>
                   <p>
