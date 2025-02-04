@@ -10,7 +10,10 @@ export default function ChatPage() {
   const { user } = useUser();
   const { userId } = useParams();
   const userIdString = Array.isArray(userId) ? userId[0] : userId;
-  const messages = useQuery(api.messages.list, { userId: userIdString });
+  const messages = useQuery(api.messages.list, {
+    userId: user?.id,
+    otherUserId: userIdString,
+  });
   const sendMessage = useMutation(api.messages.send);
   const [newMessageText, setNewMessageText] = useState('');
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -23,7 +26,8 @@ export default function ChatPage() {
       await sendMessage({
         body: newMessageText,
         sender,
-        userId: Array.isArray(userId) ? userId[0] : userId,
+        userId: user?.id,
+        otherUserId: userIdString,
       });
       setNewMessageText('');
     } catch (error) {

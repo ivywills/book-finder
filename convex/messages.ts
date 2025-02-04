@@ -3,11 +3,22 @@ import { v } from "convex/values";
 import { Doc } from "./_generated/dataModel";
 
 export const list = query({
-  args: { userId: v.string() },
-  handler: async (ctx, { userId }): Promise<Doc[]> => {
+  args: { userId: v.string(), otherUserId: v.string() },
+  handler: async (ctx, { userId, otherUserId }): Promise<Doc[]> => {
     const messages = await ctx.db
       .query("messages")
-      .filter(q => q.eq(q.field("userId"), userId))
+      .filter(q => 
+        q.or(
+          q.and(
+            q.eq(q.field("userId"), userId),
+            q.eq(q.field("otherUserId"), otherUserId)
+          ),
+          q.and(
+            q.eq(q.field("userId"), otherUserId),
+            q.eq(q.field("otherUserId"), userId)
+          )
+        )
+      )
       .order("desc")
       .take(50);
     return messages;
@@ -15,10 +26,10 @@ export const list = query({
 });
 
 export const send = mutation({
-  args: { body: v.string(), sender: v.optional(v.string()), userId: v.string() },
-  handler: async (ctx, { body, sender, userId }) => {
+  args: { body: v.string(), sender: v.optional(v.string()), userId: v.string(), otherUserId: v.string() },
+  handler: async (ctx, { body, sender, userId, otherUserId }) => {
     const timestamp = new Date().toISOString();
-    const id = await ctx.db.insert("messages", { body, sender, userId, timestamp });
-    console.log('Inserted message:', id, body, sender, userId, timestamp);
+    const id = await ctx.db.insert("messages", { body, sender, userId, otherUserId, timestamp });
+    console.log('Inserted message:', id, body, sender, userId, otherUserId, timestamp);
   },
 });
