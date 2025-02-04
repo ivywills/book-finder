@@ -11,7 +11,7 @@ export default function ChatPage() {
   const { userId } = useParams();
   const userIdString = Array.isArray(userId) ? userId[0] : userId;
   const messages = useQuery(api.messages.list, {
-    userId: user?.id,
+    userId: user?.id || '',
     otherUserId: userIdString,
   });
   const sendMessage = useMutation(api.messages.send);
@@ -26,7 +26,7 @@ export default function ChatPage() {
       await sendMessage({
         body: newMessageText,
         sender,
-        userId: user?.id,
+        userId: user?.id || '',
         otherUserId: userIdString,
       });
       setNewMessageText('');
