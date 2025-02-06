@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
+import { useClerk } from '@clerk/clerk-react';
 import Image from 'next/image';
 import defaultCover from '../default-cover.jpg';
 
@@ -19,6 +20,7 @@ interface Book {
 
 const ReadingPage = () => {
   const { user } = useUser();
+  const clerk = useClerk();
   const [title, setTitle] = useState('');
   const [book, setBook] = useState<Book | null>(null);
   const [confirmedBook, setConfirmedBook] = useState<Book | null>(null);
@@ -29,6 +31,7 @@ const ReadingPage = () => {
   const [initialLoad, setInitialLoad] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showArrows, setShowArrows] = useState(true);
+  const [profileImage, setProfileImage] = useState<string | null>(null); // New state for profile image
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -55,6 +58,9 @@ const ReadingPage = () => {
         }
         if (data.userProfile.completedBooks) {
           setCompletedBooks(data.userProfile.completedBooks);
+        }
+        if (user.imageUrl) {
+          setProfileImage(user.imageUrl);
         }
       } catch (err) {
         console.error('Error fetching books:', err);
@@ -244,6 +250,30 @@ const ReadingPage = () => {
     }
   };
 
+  const handleProfileImageChange = async (
+    e: React.ChangeEvent<HTMLInputElement>
+  ) => {
+    if (!user || !e.target.files || e.target.files.length === 0) {
+      setError('No user or file selected');
+      return;
+    }
+
+    const file = e.target.files[0];
+    setLoading(true);
+    setError(null);
+
+    try {
+      await clerk.user?.setProfileImage({ file });
+      setProfileImage(URL.createObjectURL(file)); // Update the profile image state
+      // Optionally, you can refetch user data here to update the UI
+    } catch (err) {
+      console.error('Error updating profile image:', err);
+      setError((err as Error).message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const renderCarousel = (books: Book[], idPrefix: string) => {
     const slides = [];
     const itemsPerSlide = 3; // 3 items on mobile, 5 on larger screens
@@ -282,13 +312,16 @@ const ReadingPage = () => {
             >
               {slide.map((book) => (
                 <div key={book.title} className="card w-1/3 p-2 relative">
-                  <img
+                  <Image
                     src={book.imageLinks?.thumbnail || defaultCover.src}
                     alt={`${book.title} cover`}
-                    className="w-full h-48 object-cover"
+                    width={96}
+                    height={144}
+                    className="object-cover"
                     onError={(e) => {
                       e.currentTarget.src = defaultCover.src;
                     }}
+                    priority // Add priority property
                   />
                   <div className="mt-2">
                     <strong className="block truncate">{book.title}</strong>
@@ -342,6 +375,29 @@ const ReadingPage = () => {
 
   return (
     <div className="max-w-lg mx-auto p-5">
+      {/* Profile Image Display */}
+      {profileImage && (
+        <div className="mb-6">
+          <img
+            src={profileImage}
+            alt="Profile"
+            className="w-24 h-24 rounded-full object-cover"
+          />
+        </div>
+      )}
+      {/* Profile Image Upload Section */}
+      <div className="mb-6">
+        <label htmlFor="profileImage" className="block mb-2">
+          Upload Profile Image
+        </label>
+        <input
+          type="file"
+          id="profileImage"
+          className="input input-bordered w-full"
+          accept="image/*"
+          onChange={handleProfileImageChange}
+        />
+      </div>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="title" className="block mb-2">
@@ -372,6 +428,7 @@ const ReadingPage = () => {
               width={96}
               height={144}
               className="object-cover mb-2"
+              priority // Add priority property
             />
           )}
           <p>
@@ -416,6 +473,7 @@ const ReadingPage = () => {
               width={96}
               height={144}
               className="object-cover mb-2"
+              priority // Add priority property
             />
           )}
           <p>
