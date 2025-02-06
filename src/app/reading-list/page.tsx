@@ -5,6 +5,7 @@ import { useUser } from '@clerk/nextjs';
 import { useClerk } from '@clerk/clerk-react';
 import Image from 'next/image';
 import defaultCover from '../default-cover.jpg';
+import { PencilIcon } from '@heroicons/react/outline';
 
 interface Book {
   title: string;
@@ -31,7 +32,8 @@ const ReadingPage = () => {
   const [initialLoad, setInitialLoad] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [showArrows, setShowArrows] = useState(true);
-  const [profileImage, setProfileImage] = useState<string | null>(null); // New state for profile image
+  const [profileImage, setProfileImage] = useState<string | null>(null);
+  const [editMode, setEditMode] = useState(false);
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -375,47 +377,63 @@ const ReadingPage = () => {
 
   return (
     <div className="max-w-lg mx-auto p-5">
-      {/* Profile Image Display */}
+      {/* User Information */}
       {profileImage && (
-        <div className="mb-6">
-          <img
+        <div className="mb-6 flex items-center relative">
+          <Image
             src={profileImage}
             alt="Profile"
-            className="w-24 h-24 rounded-full object-cover"
+            width={96}
+            height={96}
+            className="rounded-full object-cover"
           />
+          <div className="ml-4">
+            <h2 className="text-2xl font-bold">{user?.fullName}</h2>
+            <p className="text-lg">Books Read: {completedBooks.length}</p>
+          </div>
+          <button
+            className="btn btn-outline btn-secondary absolute top-0 right-0"
+            onClick={() => setEditMode(!editMode)}
+          >
+            <PencilIcon className="h-5 w-5" />
+          </button>
         </div>
       )}
-      {/* Profile Image Upload Section */}
-      <div className="mb-6">
-        <label htmlFor="profileImage" className="block mb-2">
-          Upload Profile Image
-        </label>
-        <input
-          type="file"
-          id="profileImage"
-          className="input input-bordered w-full"
-          accept="image/*"
-          onChange={handleProfileImageChange}
-        />
-      </div>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="title" className="block mb-2">
-            Add Books
-          </label>
-          <input
-            type="text"
-            id="title"
-            className="input input-bordered w-full"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit" className="btn btn-primary w-full">
-          Search
-        </button>
-      </form>
+      {editMode && (
+        <>
+          {/* Profile Image Upload Section */}
+          <div className="mb-6">
+            <label htmlFor="profileImage" className="block mb-2">
+              Upload Profile Image
+            </label>
+            <input
+              type="file"
+              id="profileImage"
+              className="input w-full"
+              accept="image/*"
+              onChange={handleProfileImageChange}
+            />
+          </div>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div>
+              <label htmlFor="title" className="block mb-2">
+                Add Books
+              </label>
+              <input
+                type="text"
+                id="title"
+                className="input input-bordered w-full"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
+            </div>
+            <button type="submit" className="btn btn-primary w-full">
+              Search
+            </button>
+          </form>
+        </>
+      )}
       {loading && <div>Loading...</div>}
       {error && <div className="text-red-500 mt-4">{error}</div>}
       {book && (
