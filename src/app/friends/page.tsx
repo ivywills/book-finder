@@ -153,23 +153,35 @@ const FriendsPage = () => {
           ) : (
             <ul className="list-disc pl-5">
               {friends.map((friend) => (
-                <li key={friend.id}>
-                  <Link href={`/connect/${friend.id}`} legacyBehavior>
-                    <a className="text-blue-500">
-                      {friend.name &&
-                      friend.name !== 'null null' &&
-                      friend.name.length > 1
-                        ? friend.name
-                        : friend.email?.split('@')[0] ?? ''}
-                    </a>
+                <li
+                  key={friend.id}
+                  className="flex items-center justify-between"
+                >
+                  <div>
+                    <Link href={`/connect/${friend.id}`} legacyBehavior>
+                      <a className="text-blue-500">
+                        {friend.name &&
+                        friend.name !== 'null null' &&
+                        friend.name.length > 1
+                          ? friend.name
+                          : (friend.email?.split('@')[0] ?? '')}
+                      </a>
+                    </Link>
+                    {friend.email && (
+                      <span className="flex items-center">
+                        <p>Email: {friend.email}</p>
+                        <button
+                          className="btn btn-xs btn-link ml-2"
+                          onClick={() => handleRemoveFriend(friend.id)}
+                        >
+                          Remove
+                        </button>
+                      </span>
+                    )}
+                  </div>
+                  <Link href={`/connect/${friend.id}/chat`} legacyBehavior>
+                    <a className="btn btn-sm btn-primary">Chat</a>
                   </Link>
-                  {friend.email && <p>Email: {friend.email}</p>}
-                  <button
-                    className="btn btn-sm btn-danger ml-2"
-                    onClick={() => handleRemoveFriend(friend.id)}
-                  >
-                    Remove
-                  </button>
                 </li>
               ))}
             </ul>
