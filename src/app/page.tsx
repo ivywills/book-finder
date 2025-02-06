@@ -5,7 +5,7 @@ import {
   SignedOut,
   SignInButton,
   UserButton,
-  currentUser,
+  useUser,
 } from '@clerk/nextjs';
 import Image from 'next/image';
 import booksImage from './books.png';
@@ -15,6 +15,7 @@ import Link from 'next/link';
 export default function Home() {
   const [theme, setTheme] = useState<string | null>(null);
   const [profileImage, setProfileImage] = useState<string | null>(null);
+  const { user } = useUser();
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -35,20 +36,15 @@ export default function Home() {
   }, [theme]);
 
   useEffect(() => {
-    const fetchUserProfileImage = async () => {
-      const user = await currentUser();
-      if (user && user.imageUrl) {
-        const params = new URLSearchParams();
-        params.set('height', '200');
-        params.set('width', '200');
-        params.set('quality', '100');
-        params.set('fit', 'crop');
-        setProfileImage(`${user.imageUrl}?${params.toString()}`);
-      }
-    };
-
-    fetchUserProfileImage();
-  }, []);
+    if (user && user.imageUrl) {
+      const params = new URLSearchParams();
+      params.set('height', '200');
+      params.set('width', '200');
+      params.set('quality', '100');
+      params.set('fit', 'crop');
+      setProfileImage(`${user.imageUrl}?${params.toString()}`);
+    }
+  }, [user]);
 
   if (!theme) {
     return null; // Render nothing until the theme is set
@@ -62,10 +58,12 @@ export default function Home() {
         </div>
         {profileImage && (
           <div className="mb-6">
-            <img
+            <Image
               src={profileImage}
               alt="Profile"
-              className="w-24 h-24 rounded-full object-cover"
+              width={96}
+              height={96}
+              className="rounded-full object-cover"
             />
           </div>
         )}
