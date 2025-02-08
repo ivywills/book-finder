@@ -37,26 +37,11 @@ const FriendsPage = () => {
         console.log('Fetched Friends Data:', data);
         const friendsData = data.userProfile.friends ?? [];
 
-        // Fetch profile images for each friend
-        const friendsWithImages = await Promise.all(
-          friendsData.map(async (friend: Friend) => {
-            const profileResponse = await fetch(
-              `/api/clerk?userId=${friend.id}`
-            );
-            if (!profileResponse.ok) {
-              throw new Error('Failed to fetch friend profile');
-            }
-            const profileData = await profileResponse.json();
-            const friendWithImage = {
-              id: profileData.id,
-              name: profileData.fullName,
-              email: profileData.primaryEmailAddress?.emailAddress,
-              profileImageUrl: profileData.imageUrl || defaultProfilePic.src, // Use base64 imageUrl or default
-            };
-            console.log('Friend Data:', friendWithImage);
-            return friendWithImage;
-          })
-        );
+        // Use base64 imageUrl or default
+        const friendsWithImages = friendsData.map((friend: Friend) => ({
+          ...friend,
+          profileImageUrl: friend.profileImageUrl || defaultProfilePic.src,
+        }));
 
         setFriends(friendsWithImages);
       } catch (err) {
