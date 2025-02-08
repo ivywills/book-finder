@@ -23,6 +23,7 @@ const BookPage = () => {
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [linkCopied, setLinkCopied] = useState(false);
 
   useEffect(() => {
     if (title) {
@@ -71,6 +72,24 @@ const BookPage = () => {
       setError('Title not provided');
     }
   }, [title]);
+
+  const handleShare = () => {
+    const shareData = {
+      title: book?.name,
+      text: `Check out this book: ${book?.name} by ${book?.author}`,
+      url: window.location.href,
+    };
+
+    navigator
+      .share(shareData)
+      .then(() => {
+        setLinkCopied(true);
+        setTimeout(() => setLinkCopied(false), 2000); // Reset the copied state after 2 seconds
+      })
+      .catch((error) => {
+        console.error('Error sharing:', error);
+      });
+  };
 
   if (loading) {
     return <div>Loading...</div>;
@@ -122,6 +141,12 @@ const BookPage = () => {
         <p>
           <strong>Categories:</strong> {book.categories.join(', ')}
         </p>
+      )}
+      <button className="btn btn-primary mt-4" onClick={handleShare}>
+        Share this book
+      </button>
+      {linkCopied && (
+        <p className="text-green-500 mt-2">Link copied to clipboard!</p>
       )}
     </div>
   );
