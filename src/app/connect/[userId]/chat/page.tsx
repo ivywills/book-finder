@@ -56,7 +56,9 @@ export default function ChatPage() {
   };
 
   return (
-    <main className="p-4 flex flex-col h-screen">
+    <main className="p-4 flex flex-col h-[calc(100vh-72px)]">
+      {' '}
+      {/* Adjust height */}
       <h1 className="text-2xl font-bold mb-4">Chat</h1>
       <ul className="space-y-4 flex-1 overflow-y-auto flex flex-col-reverse">
         {messages.map((message, index) => {

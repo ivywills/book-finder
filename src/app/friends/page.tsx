@@ -51,7 +51,7 @@ const FriendsPage = () => {
               id: profileData.id,
               name: profileData.fullName,
               email: profileData.primaryEmailAddress?.emailAddress,
-              profileImageUrl: profileData.imageUrl || defaultProfilePic.src, // Use Clerk's imageUrl or default
+              profileImageUrl: profileData.imageUrl || defaultProfilePic.src, // Use base64 imageUrl or default
             };
             console.log('Friend Data:', friendWithImage);
             return friendWithImage;
