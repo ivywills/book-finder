@@ -5,6 +5,7 @@ import { useUser } from '@clerk/nextjs';
 import { useClerk } from '@clerk/clerk-react';
 import Image from 'next/image';
 import defaultCover from '../default-cover.jpg';
+import defaultProfilePic from '../friends/profile-pic.png';
 import { PencilIcon } from '@heroicons/react/outline';
 
 interface Book {
@@ -403,27 +404,25 @@ const ReadingPage = () => {
   return (
     <div className="max-w-lg mx-auto p-5">
       {/* User Information */}
-      {profileImage && (
-        <div className="mb-6 flex items-center relative">
-          <Image
-            src={profileImage}
-            alt="Profile"
-            width={96}
-            height={96}
-            className="rounded-full object-cover"
-          />
-          <div className="ml-4">
-            <h2 className="text-2xl font-bold">{user?.fullName}</h2>
-            <p className="text-lg">Books Read: {completedBooks.length}</p>
-          </div>
-          <button
-            className="btn btn-outline btn-secondary absolute top-0 right-0"
-            onClick={() => setEditMode(!editMode)}
-          >
-            <PencilIcon className="h-5 w-5" />
-          </button>
+      <div className="mb-6 flex items-center relative">
+        <Image
+          src={profileImage || defaultProfilePic.src}
+          alt="Profile"
+          width={96}
+          height={96}
+          className="rounded-full object-cover"
+        />
+        <div className="ml-4">
+          <h2 className="text-2xl font-bold">{user?.fullName}</h2>
+          <p className="text-lg">Books Read: {completedBooks.length}</p>
         </div>
-      )}
+        <button
+          className="btn btn-outline btn-secondary absolute top-0 right-0"
+          onClick={() => setEditMode(!editMode)}
+        >
+          <PencilIcon className="h-5 w-5" />
+        </button>
+      </div>
       {editMode && (
         <>
           {/* Profile Image Upload Section */}
