@@ -116,35 +116,6 @@ const FriendsPage = () => {
     }
   };
 
-  const handleRemoveFriend = async (friendId: string) => {
-    if (!user) return;
-
-    try {
-      const response = await fetch('/api/clerk', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          type: 'remove.friend',
-          data: {
-            userId: user.id,
-            friendId,
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to remove friend');
-      }
-
-      setFriends(friends.filter((friend) => friend.id !== friendId));
-    } catch (err) {
-      console.error('Error removing friend:', err);
-      setError((err as Error).message);
-    }
-  };
-
   return (
     <div className="max-w-lg mx-auto p-5">
       <div className="mt-6">
@@ -199,12 +170,6 @@ const FriendsPage = () => {
                       {friend.email && (
                         <span className="flex items-center">
                           <p>Email: {friend.email}</p>
-                          <button
-                            className="btn btn-xs btn-link ml-2"
-                            onClick={() => handleRemoveFriend(friend.id)}
-                          >
-                            Remove
-                          </button>
                         </span>
                       )}
                     </div>
