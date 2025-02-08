@@ -3,11 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
+import defaultProfilePic from './profile-pic.png';
 
 interface Friend {
   id: string;
   name?: string;
   email?: string;
+  profileImageUrl?: string; // Add profile image URL
 }
 
 const FriendsPage = () => {
@@ -32,7 +34,31 @@ const FriendsPage = () => {
           throw new Error('Failed to fetch friends');
         }
         const data = await response.json();
-        setFriends(data.userProfile.friends ?? []);
+        console.log('Fetched Friends Data:', data);
+        const friendsData = data.userProfile.friends ?? [];
+
+        // Fetch profile images for each friend
+        const friendsWithImages = await Promise.all(
+          friendsData.map(async (friend: Friend) => {
+            const profileResponse = await fetch(
+              `/api/clerk?userId=${friend.id}`
+            );
+            if (!profileResponse.ok) {
+              throw new Error('Failed to fetch friend profile');
+            }
+            const profileData = await profileResponse.json();
+            const friendWithImage = {
+              id: profileData.id,
+              name: profileData.fullName,
+              email: profileData.primaryEmailAddress?.emailAddress,
+              profileImageUrl: profileData.imageUrl || defaultProfilePic.src, // Use Clerk's imageUrl or default
+            };
+            console.log('Friend Data:', friendWithImage);
+            return friendWithImage;
+          })
+        );
+
+        setFriends(friendsWithImages);
       } catch (err) {
         console.error('Error fetching friends:', err);
         setError((err as Error).message);
@@ -66,6 +92,15 @@ const FriendsPage = () => {
       }
       const { userId: friendId } = await userIdResponse.json();
 
+      // Fetch the friend's profile image
+      const profileResponse = await fetch(`/api/clerk?userId=${friendId}`);
+      if (!profileResponse.ok) {
+        throw new Error('Failed to fetch friend profile');
+      }
+      const profileData = await profileResponse.json();
+      const profileImageUrl = profileData.imageUrl || defaultProfilePic.src;
+      console.log('Friend Data:', profileData);
+
       // Add the friend using the fetched user ID
       const response = await fetch('/api/clerk', {
         method: 'POST',
@@ -85,7 +120,10 @@ const FriendsPage = () => {
         throw new Error('Failed to add friend');
       }
 
-      setFriends([...friends, { id: friendId, email: friendEmail }]);
+      setFriends([
+        ...friends,
+        { id: friendId, email: friendEmail, profileImageUrl },
+      ]);
       setNewFriendEmail('');
     } catch (err) {
       console.error('Error adding friend:', err);
@@ -157,27 +195,34 @@ const FriendsPage = () => {
                   key={friend.id}
                   className="flex items-center justify-between"
                 >
-                  <div>
-                    <Link href={`/connect/${friend.id}`} legacyBehavior>
-                      <a className="text-blue-500">
-                        {friend.name &&
-                        friend.name !== 'null null' &&
-                        friend.name.length > 1
-                          ? friend.name
-                          : (friend.email?.split('@')[0] ?? '')}
-                      </a>
-                    </Link>
-                    {friend.email && (
-                      <span className="flex items-center">
-                        <p>Email: {friend.email}</p>
-                        <button
-                          className="btn btn-xs btn-link ml-2"
-                          onClick={() => handleRemoveFriend(friend.id)}
-                        >
-                          Remove
-                        </button>
-                      </span>
-                    )}
+                  <div className="flex items-center">
+                    <img
+                      src={friend.profileImageUrl || defaultProfilePic.src}
+                      alt={`${friend.name ?? friend.email}'s profile`}
+                      className="w-10 h-10 rounded-full mr-2"
+                    />
+                    <div>
+                      <Link href={`/connect/${friend.id}`} legacyBehavior>
+                        <a className="text-blue-500">
+                          {friend.name &&
+                          friend.name !== 'null null' &&
+                          friend.name.length > 1
+                            ? friend.name
+                            : (friend.email?.split('@')[0] ?? '')}
+                        </a>
+                      </Link>
+                      {friend.email && (
+                        <span className="flex items-center">
+                          <p>Email: {friend.email}</p>
+                          <button
+                            className="btn btn-xs btn-link ml-2"
+                            onClick={() => handleRemoveFriend(friend.id)}
+                          >
+                            Remove
+                          </button>
+                        </span>
+                      )}
+                    </div>
                   </div>
                   <Link href={`/connect/${friend.id}/chat`} legacyBehavior>
                     <a className="btn btn-sm btn-primary">Chat</a>

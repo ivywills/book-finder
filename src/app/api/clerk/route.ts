@@ -4,6 +4,7 @@ import { MongoClient } from 'mongodb';
 interface Friend {
   id: string;
   name: string;
+  profileImageUrl?: string; // Add profile image URL
 }
 
 interface WebhookEvent {
@@ -20,7 +21,9 @@ interface WebhookEvent {
       email_addresses: { email_address: string }[];
       first_name: string;
       last_name: string;
+      image_url?: string; // Add image_url
     };
+    imageUrl?: string; // Add imageUrl for profile image update
   };
 }
 
@@ -52,6 +55,15 @@ export async function GET(req: NextRequest) {
 
     console.log('Fetched user profile:', user);
 
+    // Ensure imageUrl field exists
+    if (!user.imageUrl) {
+      user.imageUrl = '';
+      await usersCollection.updateOne(
+        { id: userId },
+        { $set: { imageUrl: '' } }
+      );
+    }
+
     const friendsDetails = await Promise.all(
       (user.friends || []).map(async (friend: Friend) => {
         const friendDetails = await usersCollection.findOne({ id: friend.id });
@@ -59,6 +71,7 @@ export async function GET(req: NextRequest) {
           id: friend.id,
           name: friendDetails?.firstName + ' ' + friendDetails?.lastName || friend.name,
           email: friendDetails?.email,
+          profileImageUrl: friendDetails?.imageUrl, // Add profile image URL
         };
       })
     );
@@ -68,6 +81,7 @@ export async function GET(req: NextRequest) {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
+      imageUrl: user.imageUrl, // Add imageUrl
       friends: friendsDetails,
       favorites: user.favorites || [], // Ensure favorites is included in the response
       currentlyReading: user.currentlyReading || null, // Ensure currentlyReading is included in the response
@@ -116,6 +130,7 @@ export async function POST(req: NextRequest) {
         email: user.email_addresses[0].email_address,
         firstName: user.first_name,
         lastName: user.last_name,
+        imageUrl: user.image_url, // Add imageUrl
         createdAt: new Date(),
         favorites: [], // Initialize favorites as an empty array
         currentlyReading: null, // Initialize currentlyReading as null
@@ -180,6 +195,14 @@ export async function POST(req: NextRequest) {
     const result = await usersCollection.updateOne(
       { id: userId },
       { $unset: { currentlyReading: "" } }
+    );
+    console.log('Update result:', result); // Debugging line
+  } else if (payload.type === 'update.profileImage') {
+    const { userId, imageUrl } = payload.data;
+    console.log('Updating profile image for user:', userId); // Debugging line
+    const result = await usersCollection.updateOne(
+      { id: userId },
+      { $set: { imageUrl } }
     );
     console.log('Update result:', result); // Debugging line
   }

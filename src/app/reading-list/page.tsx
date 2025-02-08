@@ -61,8 +61,8 @@ const ReadingPage = () => {
         if (data.userProfile.completedBooks) {
           setCompletedBooks(data.userProfile.completedBooks);
         }
-        if (user.imageUrl) {
-          setProfileImage(user.imageUrl);
+        if (data.userProfile.imageUrl) {
+          setProfileImage(data.userProfile.imageUrl);
         }
       } catch (err) {
         console.error('Error fetching books:', err);
@@ -265,9 +265,34 @@ const ReadingPage = () => {
     setError(null);
 
     try {
-      await clerk.user?.setProfileImage({ file });
-      setProfileImage(URL.createObjectURL(file)); // Update the profile image state
-      // Optionally, you can refetch user data here to update the UI
+      const reader = new FileReader();
+      reader.onloadend = async () => {
+        const base64Image = reader.result as string;
+        await clerk.user?.setProfileImage({ file });
+        setProfileImage(base64Image); // Update the profile image state
+
+        // Update the profile image in the database
+        const response = await fetch('/api/clerk', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            type: 'update.profileImage',
+            data: {
+              userId: user.id,
+              imageUrl: base64Image,
+            },
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error('Failed to update profile image in database');
+        }
+
+        // Optionally, you can refetch user data here to update the UI
+      };
+      reader.readAsDataURL(file);
     } catch (err) {
       console.error('Error updating profile image:', err);
       setError((err as Error).message);
