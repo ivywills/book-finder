@@ -40,7 +40,7 @@ export default function RootLayout({
                 </a>
               </div>
               <div className="flex-none">
-                <ul className="menu menu-horizontal px-1">
+                <ul className="menu menu-horizontal px-[0.25rem]">
                   <li className="md:hidden block">
                     <a href="/">Home</a>
                   </li>
