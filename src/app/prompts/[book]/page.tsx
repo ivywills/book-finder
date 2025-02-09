@@ -24,6 +24,7 @@ const BookPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
+  const [showFullDescription, setShowFullDescription] = useState(false);
 
   useEffect(() => {
     if (title) {
@@ -91,6 +92,13 @@ const BookPage = () => {
       });
   };
 
+  const getShortDescription = (description: string) => {
+    const sentences = description.split('. ');
+    return (
+      sentences.slice(0, 2).join('. ') + (sentences.length > 2 ? ' ... ' : '')
+    );
+  };
+
   if (loading) {
     return <div>Loading...</div>;
   }
@@ -119,7 +127,26 @@ const BookPage = () => {
       </p>
       {book.description && (
         <p>
-          <strong>Description:</strong> {book.description}
+          <strong>Description:</strong>{' '}
+          {showFullDescription
+            ? book.description
+            : getShortDescription(book.description)}
+          {!showFullDescription && book.description.split('. ').length > 2 && (
+            <span
+              className="text-blue-500 cursor-pointer"
+              onClick={() => setShowFullDescription(true)}
+            >
+              Read more
+            </span>
+          )}
+          {showFullDescription && (
+            <span
+              className="text-blue-500 cursor-pointer"
+              onClick={() => setShowFullDescription(false)}
+            >
+              Read less
+            </span>
+          )}
         </p>
       )}
       {book.publisher && (
