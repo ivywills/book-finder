@@ -465,7 +465,7 @@ const HomePage = () => {
           <textarea
             id="prompt"
             className="textarea textarea-primary w-full focus:outline-none focus:ring-0"
-            placeholder="Enter a few books you like..."
+            placeholder="Enter a few books"
             value={prompt}
             onChange={(e) => setPrompt(e.target.value)}
             rows={1}
