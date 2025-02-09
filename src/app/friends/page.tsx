@@ -59,10 +59,19 @@ const FriendsPage = () => {
     if (user) {
       const link = `${window.location.origin}/connect/${user.id}`;
       setShareLink(link);
-      navigator.clipboard.writeText(link).then(() => {
-        setLinkCopied(true);
-        setTimeout(() => setLinkCopied(false), 2000); // Reset the copied state after 2 seconds
-      });
+      navigator
+        .share({
+          title: 'Share my account',
+          text: 'Check out my profile on Book Finder!',
+          url: link,
+        })
+        .then(() => {
+          setLinkCopied(true);
+          setTimeout(() => setLinkCopied(false), 2000); // Reset the copied state after 2 seconds
+        })
+        .catch((error) => {
+          console.error('Error sharing:', error);
+        });
     }
   };
 
@@ -118,44 +127,26 @@ const FriendsPage = () => {
 
   return (
     <div className="max-w-lg mx-auto p-5">
-      <div className="mt-6">
-        <h2 className="font-bold my-6 text-xl">Add a New Friend</h2>
-        <div className="flex space-x-2">
-          <input
-            type="text"
-            placeholder="Friend Email"
-            className="input input-bordered w-full"
-            value={newFriendEmail}
-            onChange={(e) => setNewFriendEmail(e.target.value)}
-          />
-          <button
-            className="btn btn-primary"
-            onClick={() => handleAddFriend(newFriendEmail)}
-          >
-            Add Friend
-          </button>
-        </div>
-      </div>
       <h1 className="font-bold my-6 text-xl">Friends</h1>
       {loading ? (
         <div>Loading...</div>
       ) : (
         <>
-          {error && <div className="text-red-500">{error}</div>}
+          {error && <div className="text-red-500 mb-4">{error}</div>}
           {(friends ?? []).length === 0 ? (
             <div>No friends added yet.</div>
           ) : (
-            <ul className="list-disc pl-5">
-              {friends.map((friend) => (
+            <ul className="list-none pl-0 space-y-4">
+              {friends.map((friend, index) => (
                 <li
                   key={friend.id}
-                  className="flex items-center justify-between"
+                  className={`flex items-center justify-between pb-4 ${index !== friends.length - 1 ? 'border-b border-gray-200' : ''}`}
                 >
-                  <div className="flex items-center">
+                  <div className="flex items-center space-x-4">
                     <img
                       src={friend.profileImageUrl || defaultProfilePic.src}
                       alt={`${friend.name ?? friend.email}'s profile`}
-                      className="w-10 h-10 rounded-full mr-2"
+                      className="w-10 h-10 rounded-full"
                     />
                     <div>
                       <Link href={`/connect/${friend.id}`} legacyBehavior>
@@ -167,11 +158,6 @@ const FriendsPage = () => {
                             : (friend.email?.split('@')[0] ?? '')}
                         </a>
                       </Link>
-                      {friend.email && (
-                        <span className="flex items-center">
-                          <p>Email: {friend.email}</p>
-                        </span>
-                      )}
                     </div>
                   </div>
                   <Link href={`/connect/${friend.id}/chat`} legacyBehavior>
@@ -184,9 +170,26 @@ const FriendsPage = () => {
         </>
       )}
 
+      <h2 className="font-bold my-6 text-xl">Add a New Friend</h2>
+      <div className="flex space-x-2 mb-6">
+        <input
+          type="text"
+          placeholder="Friend Email"
+          className="input input-bordered w-full"
+          value={newFriendEmail}
+          onChange={(e) => setNewFriendEmail(e.target.value)}
+        />
+        <button
+          className="btn btn-primary"
+          onClick={() => handleAddFriend(newFriendEmail)}
+        >
+          Add Friend
+        </button>
+      </div>
+
       <h2 className="font-bold my-4 text-xl">Share your account</h2>
       <button className="btn btn-primary mt-4" onClick={handleGetShareLink}>
-        Friend Link
+        Share my account
       </button>
 
       {shareLink && (
@@ -196,7 +199,7 @@ const FriendsPage = () => {
             {shareLink}
           </a>
           {linkCopied && (
-            <p className="text-green-500">Link copied to clipboard!</p>
+            <p className="text-green-500 mt-2">Link copied to clipboard!</p>
           )}
         </div>
       )}

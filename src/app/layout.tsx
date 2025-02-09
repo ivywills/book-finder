@@ -45,7 +45,7 @@ export default function RootLayout({
                     <a href="/prompts">Discover</a>
                   </li>
                   <li>
-                    <a href="/reading-list">Reading List</a>
+                    <a href="/reading-list">Profile</a>
                   </li>
                   <li>
                     <a href="/friends">Friends</a>

@@ -30,6 +30,9 @@ export default function ChatPage() {
         otherUserId: userIdString,
       });
       setNewMessageText('');
+      if (messagesEndRef.current) {
+        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
+      }
     } catch (error) {
       console.error('Error sending message:', error);
     }
@@ -57,9 +60,6 @@ export default function ChatPage() {
 
   return (
     <main className="p-4 flex flex-col h-[calc(100vh-72px)]">
-      {' '}
-      {/* Adjust height */}
-      <h1 className="text-2xl font-bold mb-4">Chat</h1>
       <ul className="space-y-4 flex-1 overflow-y-auto flex flex-col-reverse">
         {messages.map((message, index) => {
           const previousMessage = messages[index + 1];
