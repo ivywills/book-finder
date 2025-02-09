@@ -1,20 +1,11 @@
 'use client';
 
-import {
-  SignedIn,
-  SignedOut,
-  SignInButton,
-  UserButton,
-  useUser,
-} from '@clerk/nextjs';
-import Image from 'next/image';
-import booksImage from './books.png';
+import { SignedIn, SignedOut, SignInButton, UserButton } from '@clerk/nextjs';
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
 
 export default function Home() {
   const [theme, setTheme] = useState<string | null>(null);
-  const { user } = useUser();
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
