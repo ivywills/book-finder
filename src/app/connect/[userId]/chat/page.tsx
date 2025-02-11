@@ -85,7 +85,7 @@ export default function ChatPage() {
         })}
         <div ref={messagesEndRef} />
       </ul>
-      <form onSubmit={handleSendMessage} className="mt-4 flex space-x-2">
+      <form onSubmit={handleSendMessage} className="my-4 flex space-x-2">
         <input
           value={newMessageText}
           onChange={(e) => setNewMessageText(e.target.value)}
