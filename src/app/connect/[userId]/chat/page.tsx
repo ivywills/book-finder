@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { useQuery, useMutation } from 'convex/react';
 import { api } from '../../../../../convex/_generated/api';
 import { useUser } from '@clerk/nextjs';
@@ -30,9 +30,6 @@ export default function ChatPage() {
         otherUserId: userIdString,
       });
       setNewMessageText('');
-      if (messagesEndRef.current) {
-        messagesEndRef.current.scrollIntoView({ behavior: 'smooth' });
-      }
     } catch (error) {
       console.error('Error sending message:', error);
     }
