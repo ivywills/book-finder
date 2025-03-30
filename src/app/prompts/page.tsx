@@ -38,6 +38,7 @@ const HomePage = () => {
   const [favoritesView, setFavoritesView] = useState<'carousel' | 'list'>(
     'carousel'
   );
+  const [loadingFavorites, setLoadingFavorites] = useState(true);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -62,6 +63,7 @@ const HomePage = () => {
     const fetchFavorites = async () => {
       if (!user) return;
 
+      setLoadingFavorites(true);
       try {
         const userId = user.id;
         console.log('Fetching favorites for user:', userId); // Debugging line
@@ -84,6 +86,8 @@ const HomePage = () => {
       } catch (error) {
         console.error('Error fetching favorites:', error);
         setError('Failed to fetch favorites');
+      } finally {
+        setLoadingFavorites(false);
       }
     };
 
@@ -504,27 +508,33 @@ const HomePage = () => {
           </div>
         </div>
       )}
-      {favorites.length > 0 && (
-        <div className="mt-5">
-          <h2 className="mb-4">Favorites:</h2>
-          {favoritesView === 'carousel'
-            ? renderCarousel(favorites, 'favorite-slide')
-            : renderList(favorites)}
-          <div className="mt-2 flex justify-end">
-            <button
-              className={`btn btn-xs ${
-                favoritesView === 'carousel' ? 'btn-primary' : 'btn-secondary'
-              }`}
-              onClick={() =>
-                setFavoritesView(
-                  favoritesView === 'carousel' ? 'list' : 'carousel'
-                )
-              }
-            >
-              {favoritesView === 'carousel' ? 'List View' : 'Carousel View'}
-            </button>
-          </div>
+      {loadingFavorites ? (
+        <div className="flex justify-center items-center min-h-screen -mt-40">
+          <span className="loading loading-spinner loading-md"></span>
         </div>
+      ) : (
+        favorites.length > 0 && (
+          <div className="mt-5">
+            <h2 className="mb-4">Favorites:</h2>
+            {favoritesView === 'carousel'
+              ? renderCarousel(favorites, 'favorite-slide')
+              : renderList(favorites)}
+            <div className="mt-2 flex justify-end">
+              <button
+                className={`btn btn-xs ${
+                  favoritesView === 'carousel' ? 'btn-primary' : 'btn-secondary'
+                }`}
+                onClick={() =>
+                  setFavoritesView(
+                    favoritesView === 'carousel' ? 'list' : 'carousel'
+                  )
+                }
+              >
+                {favoritesView === 'carousel' ? 'List View' : 'Carousel View'}
+              </button>
+            </div>
+          </div>
+        )
       )}
       {error && (
         <div className="text-red-500 mt-5">

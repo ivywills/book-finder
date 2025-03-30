@@ -397,8 +397,12 @@ const ReadingPage = () => {
     );
   };
 
-  if (initialLoad) {
-    return null; // Leave the page blank during the initial load
+  if (initialLoad || loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <span className="loading loading-spinner loading-md"></span>
+      </div>
+    );
   }
 
   return (
