@@ -442,26 +442,26 @@ const ReadingPage = () => {
               onChange={handleProfileImageChange}
             />
           </div>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <label htmlFor="title" className="block mb-2">
-                Add Books
-              </label>
-              <input
-                type="text"
-                id="title"
-                className="input input-bordered w-full"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                required
-              />
-            </div>
-            <button type="submit" className="btn btn-primary w-full">
-              Search
-            </button>
-          </form>
         </>
       )}
+      <form onSubmit={handleSubmit} className="space-y-4">
+        <div>
+          <label htmlFor="title" className="block mb-2">
+            Add Books
+          </label>
+          <input
+            type="text"
+            id="title"
+            className="input input-bordered w-full"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            required
+          />
+        </div>
+        <button type="submit" className="btn btn-primary w-full">
+          Search
+        </button>
+      </form>
       {loading && <div>Loading...</div>}
       {error && <div className="text-red-500 mt-4">{error}</div>}
       {book && (
