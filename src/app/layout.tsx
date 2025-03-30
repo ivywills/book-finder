@@ -1,6 +1,11 @@
 import type { Metadata } from 'next';
 import localFont from 'next/font/local';
-import { ClerkProvider } from '@clerk/nextjs';
+import {
+  ClerkProvider,
+  SignedIn,
+  SignedOut,
+  SignInButton,
+} from '@clerk/nextjs';
 import './globals.css';
 import ThemeToggle from './theme-toggle';
 import ConvexClientProvider from './ConvexClientProvider';
@@ -33,32 +38,39 @@ export default function RootLayout({
       >
         <ClerkProvider>
           <ConvexClientProvider>
-            <div className="navbar bg-base-100">
-              <div className="flex-1 flex items-center">
-                <a href="/" className="md:block hidden text-xl">
-                  Book Finder
-                </a>
+            <SignedIn>
+              <div className="navbar bg-base-100">
+                <div className="flex-1 flex items-center">
+                  <a href="/" className="md:block hidden text-xl">
+                    Book Finder
+                  </a>
+                </div>
+                <div className="flex-none">
+                  <ul className="menu menu-horizontal px-[0.25rem]">
+                    <li className="md:hidden block">
+                      <a href="/">Home</a>
+                    </li>
+                    <li>
+                      <a href="/prompts">Discover</a>
+                    </li>
+                    <li>
+                      <a href="/reading-list">Profile</a>
+                    </li>
+                    <li>
+                      <a href="/friends">Friends</a>
+                    </li>
+                    <li>
+                      <ThemeToggle />
+                    </li>
+                  </ul>
+                </div>
               </div>
-              <div className="flex-none">
-                <ul className="menu menu-horizontal px-[0.25rem]">
-                  <li className="md:hidden block">
-                    <a href="/">Home</a>
-                  </li>
-                  <li>
-                    <a href="/prompts">Discover</a>
-                  </li>
-                  <li>
-                    <a href="/reading-list">Profile</a>
-                  </li>
-                  <li>
-                    <a href="/friends">Friends</a>
-                  </li>
-                  <li>
-                    <ThemeToggle />
-                  </li>
-                </ul>
+            </SignedIn>
+            <SignedOut>
+              <div className="flex justify-end p-4">
+                <SignInButton />
               </div>
-            </div>
+            </SignedOut>
             {children}
           </ConvexClientProvider>
         </ClerkProvider>

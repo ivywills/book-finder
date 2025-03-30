@@ -6,6 +6,7 @@ import Link from 'next/link';
 
 export default function Home() {
   const [theme, setTheme] = useState<string | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -25,6 +26,11 @@ export default function Home() {
     }
   }, [theme]);
 
+  useEffect(() => {
+    const timer = setTimeout(() => setLoading(false), 500); // Simulate loading delay
+    return () => clearTimeout(timer);
+  }, []);
+
   if (!theme) {
     return null; // Render nothing until the theme is set
   }
@@ -32,19 +38,29 @@ export default function Home() {
   return (
     <div className="relative flex flex-col items-center justify-center min-h-screen">
       <h1 className="text-3xl font-bold mb-6">Book Finder</h1>
-      <SignedIn>
-        <div className="absolute top-4 left-4">
-          <UserButton />
+      {loading ? (
+        <div className="mt-4">
+          <span className="loading loading-spinner loading-md"></span>
         </div>
-        <Link href="/prompts">
-          <button className="btn btn-primary mt-4">Find my next Book</button>
-        </Link>
-      </SignedIn>
-      <SignedOut>
-        <button className="btn btn-primary mt-4">
-          <SignInButton />
-        </button>
-      </SignedOut>
+      ) : (
+        <>
+          <SignedIn>
+            <div className="absolute top-4 left-4">
+              <UserButton />
+            </div>
+            <Link href="/prompts">
+              <button className="btn btn-primary mt-4">
+                Find my next Book
+              </button>
+            </Link>
+          </SignedIn>
+          <SignedOut>
+            <div className="mt-4">
+              <SignInButton />
+            </div>
+          </SignedOut>
+        </>
+      )}
     </div>
   );
 }
