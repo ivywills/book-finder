@@ -536,25 +536,28 @@ const ReadingPage = () => {
             <strong>Published Date:</strong>{' '}
             {confirmedBook.publishedDate || 'Unknown Date'}
           </p>
-          <p>
-            <strong>Number of Pages:</strong>{' '}
-            {confirmedBook.pageCount || 'Unknown'}
-          </p>
-          {confirmedBook.pageCount && (
-            <div className="mt-4">
-              <label htmlFor="pagesRead" className="block mb-2">
-                Pages Read: {pagesRead} / {confirmedBook.pageCount}
-              </label>
-              <input
-                type="range"
-                id="pagesRead"
-                min="0"
-                max={confirmedBook.pageCount}
-                value={pagesRead}
-                onChange={handlePagesReadChange}
-                className="range range-secondary w-full"
-              />
-            </div>
+          {!!confirmedBook.pageCount && (
+            <>
+              <p>
+                <strong>Number of Pages:</strong>{' '}
+                {confirmedBook.pageCount || 'Unknown'}
+              </p>
+
+              <div className="mt-4">
+                <label htmlFor="pagesRead" className="block mb-2">
+                  Pages Read: {pagesRead} / {confirmedBook.pageCount}
+                </label>
+                <input
+                  type="range"
+                  id="pagesRead"
+                  min="0"
+                  max={confirmedBook.pageCount}
+                  value={pagesRead}
+                  onChange={handlePagesReadChange}
+                  className="range range-secondary w-full"
+                />
+              </div>
+            </>
           )}
           <button className="btn btn-danger mt-4" onClick={handleRemove}>
             Remove
