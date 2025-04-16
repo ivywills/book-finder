@@ -69,7 +69,7 @@ const HomePage = () => {
         console.log('Fetching favorites for user:', userId); // Debugging line
         const response = await fetch(`/api/clerk?userId=${userId}`);
         if (!response.ok) {
-          throw new Error('Failed to fetch favorites');
+          throw new Error('No favorites found for user');
         }
         const data = await response.json();
         console.log('Fetched data:', data); // Debugging line
@@ -84,8 +84,8 @@ const HomePage = () => {
           setError('No favorites found for user');
         }
       } catch (error) {
-        console.error('Error fetching favorites:', error);
-        setError('Failed to fetch favorites');
+        console.error('No favorites found for user');
+        setError('No favorites found for user');
       } finally {
         setLoadingFavorites(false);
       }
