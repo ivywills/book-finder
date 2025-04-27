@@ -115,7 +115,7 @@ const BookPage = () => {
               return { ...b, image: defaultCover.src };
             })
           );
-          // @ts-ignore: Ignore type mismatch for booksWithImages
+          // @ts-expect-error: Ignore type mismatch for booksWithImages
           setSuggestedBooks(booksWithImages);
         }
       } catch (err) {
