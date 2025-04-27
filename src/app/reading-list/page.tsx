@@ -416,16 +416,17 @@ const ReadingPage = () => {
           height={96}
           className="rounded-full object-cover"
         />
-        <div className="ml-4">
-          <h2 className="text-2xl font-bold">{user?.fullName}</h2>
-          <p className="text-lg">Books Read: {completedBooks.length}</p>
-        </div>
         <button
-          className="btn btn-outline btn-secondary absolute top-0 right-0"
+          className="btn btn-solid btn-sm btn-circle btn-primary -ml-6 -mb-16"
           onClick={() => setEditMode(!editMode)}
         >
           <PencilIcon className="h-5 w-5" />
         </button>
+
+        <div className="ml-4">
+          <h2 className="text-2xl font-bold">{user?.fullName}</h2>
+          <p className="text-lg">Books Read: {completedBooks.length}</p>
+        </div>
       </div>
       {editMode && (
         <>
