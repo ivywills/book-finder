@@ -34,10 +34,12 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
+        {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
+        {/* @ts-ignore: Property 'crossorigin' does not exist on type 'DetailedHTMLProps<ScriptHTMLAttributes<HTMLScriptElement>, HTMLScriptElement>'. */}
         <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5157675419011624"
-          crossOrigin="anonymous"
+          crossorigin="anonymous"
         ></script>
       </head>
       <body
