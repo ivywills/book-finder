@@ -3,6 +3,8 @@
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import defaultCover from '../../default-cover.jpg';
+import { generatePrompts } from '../../../actions/open-ai'; // Import the function to generate suggestions
+import Link from 'next/link';
 
 interface Book {
   name: string;
@@ -25,6 +27,8 @@ const BookPage = () => {
   const [error, setError] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
+  const [suggestedBooks, setSuggestedBooks] = useState<Book[]>([]);
+  const [loadingSuggestions, setLoadingSuggestions] = useState(false);
 
   useEffect(() => {
     if (title) {
@@ -74,6 +78,56 @@ const BookPage = () => {
     }
   }, [title]);
 
+  useEffect(() => {
+    const fetchSuggestions = async () => {
+      if (!book) return;
+
+      setLoadingSuggestions(true);
+      try {
+        const result = await generatePrompts(`Books like ${book.name}`);
+        if (result && result.books) {
+          const booksWithImages = await Promise.all(
+            result.books.map(async (b) => {
+              const apiUrl = b.name
+                ? `https://www.googleapis.com/books/v1/volumes?q=intitle:${b.name}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
+                : null;
+              if (apiUrl) {
+                try {
+                  const response = await fetch(apiUrl);
+                  if (response.ok) {
+                    const data = await response.json();
+                    const bookData = data.items?.[0]?.volumeInfo;
+                    if (bookData) {
+                      return {
+                        ...b,
+                        image:
+                          bookData.imageLinks?.thumbnail || defaultCover.src,
+                      };
+                    }
+                  }
+                } catch (error) {
+                  console.error(
+                    `Error fetching data for title: ${b.name}`,
+                    error
+                  );
+                }
+              }
+              return { ...b, image: defaultCover.src };
+            })
+          );
+          // @ts-ignore: Ignore type mismatch for booksWithImages
+          setSuggestedBooks(booksWithImages);
+        }
+      } catch (err) {
+        console.error('Error fetching suggestions:', err);
+      } finally {
+        setLoadingSuggestions(false);
+      }
+    };
+
+    fetchSuggestions();
+  }, [book]);
+
   const handleShare = () => {
     const shareData = {
       title: book?.name,
@@ -96,6 +150,47 @@ const BookPage = () => {
     const sentences = description.split('. ');
     return (
       sentences.slice(0, 2).join('. ') + (sentences.length > 2 ? ' ... ' : '')
+    );
+  };
+
+  const renderCarousel = (books: Book[], idPrefix: string) => {
+    const slides = [];
+    const itemsPerSlide = 3; // 3 items on mobile, 5 on larger screens
+    for (let i = 0; i < books.length; i += itemsPerSlide) {
+      slides.push(books.slice(i, i + itemsPerSlide));
+    }
+
+    return (
+      <div>
+        <div className="carousel w-full overflow-x-scroll snap-x snap-mandatory">
+          {slides.map((slide, index) => (
+            <div
+              id={`${idPrefix}${index}`}
+              className="carousel-item relative w-full flex justify-center snap-center"
+              key={index}
+            >
+              {slide.map((book) => (
+                <div key={book.isbn} className="card w-1/3 p-2 relative">
+                  <img
+                    src={book.image || defaultCover.src}
+                    alt={`${book.name} cover`}
+                    className="w-full h-48 object-cover"
+                    onError={(e) => {
+                      e.currentTarget.src = defaultCover.src;
+                    }}
+                  />
+                  <Link href={`/prompts/${encodeURIComponent(book.name)}`}>
+                    <div className="mt-2">
+                      <strong className="block truncate">{book.name}</strong>
+                      <p className="block truncate">{book.author}</p>
+                    </div>
+                  </Link>
+                </div>
+              ))}
+            </div>
+          ))}
+        </div>
+      </div>
     );
   };
 
@@ -144,6 +239,7 @@ const BookPage = () => {
               className="text-blue-500 cursor-pointer"
               onClick={() => setShowFullDescription(false)}
             >
+              {' '}
               Read less
             </span>
           )}
@@ -174,6 +270,18 @@ const BookPage = () => {
       </button>
       {linkCopied && (
         <p className="text-green-500 mt-2">Link copied to clipboard!</p>
+      )}
+      {loadingSuggestions ? (
+        <div className="flex justify-center items-center mt-6">
+          <span className="loading loading-spinner loading-md"></span>
+        </div>
+      ) : (
+        suggestedBooks.length > 0 && (
+          <div className="mt-8">
+            <h2 className="text-xl font-bold mb-4">Books Like This</h2>
+            {renderCarousel(suggestedBooks, 'suggested-slide')}
+          </div>
+        )
       )}
     </div>
   );
