@@ -97,11 +97,18 @@ const HomePage = () => {
   }, [user]);
 
   const fetchImages = async (books: Book[]) => {
+    const cachedBooks = new Map<string, Book>(); // Cache to store fetched books
+
     const booksWithImages = await Promise.all(
       books.map(async (book) => {
+        if (cachedBooks.has(book.name)) {
+          return cachedBooks.get(book.name)!; // Return cached book if available
+        }
+
         const apiUrl = book.name
-          ? `https://www.googleapis.com/books/v1/volumes?q=intitle:${book.name}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
+          ? `https://www.googleapis.com/books/v1/volumes?q=intitle:${book.name}&fields=items(volumeInfo(title,authors,imageLinks/thumbnail,averageRating,ratingsCount))&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
           : null;
+
         if (apiUrl) {
           try {
             const response = await fetch(apiUrl);
@@ -109,22 +116,21 @@ const HomePage = () => {
               const data = await response.json();
               const bookData = data.items?.[0]?.volumeInfo;
               if (bookData) {
-                return {
+                const updatedBook = {
                   ...book,
                   image: bookData.imageLinks?.thumbnail || defaultCover.src,
                   averageRating: bookData.averageRating || null,
                   ratingsCount: bookData.ratingsCount || null,
                 };
-              } else {
-                console.error(`No data found for title: ${book.name}`);
+                cachedBooks.set(book.name, updatedBook); // Cache the result
+                return updatedBook;
               }
-            } else {
-              console.error(`Failed to fetch data for title: ${book.name}`);
             }
           } catch (error) {
             console.error(`Error fetching data for title: ${book.name}`, error);
           }
         }
+
         return {
           ...book,
           image: defaultCover.src,
@@ -133,6 +139,7 @@ const HomePage = () => {
         };
       })
     );
+
     return booksWithImages;
   };
 
@@ -345,10 +352,11 @@ const HomePage = () => {
                         : defaultCover.src
                     }
                     alt={`${book.name} cover`}
-                    className="w-full h-48 object-cover rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
+                    className="w-full h-48 object-cover rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300 lazyload"
                     onError={(e) => {
                       e.currentTarget.src = defaultCover.src;
                     }}
+                    loading="lazy" // Lazy load images
                   />
                   <Link href={`/prompts/${encodeURIComponent(book.name)}`}>
                     <div className="mt-2">
@@ -375,34 +383,6 @@ const HomePage = () => {
               ))}
             </div>
           ))}
-          {showArrows && (
-            <div className="hidden md:flex absolute left-5 right-5 top-1/2 transform -translate-y-1/2 justify-between">
-              <button
-                onClick={() =>
-                  document
-                    .getElementById(
-                      `${idPrefix}${(currentSlide - 1 + slides.length) % slides.length}`
-                    )
-                    ?.scrollIntoView({ behavior: 'smooth' })
-                }
-                className="btn btn-circle"
-              >
-                ❮
-              </button>
-              <button
-                onClick={() =>
-                  document
-                    .getElementById(
-                      `${idPrefix}${(currentSlide + 1) % slides.length}`
-                    )
-                    ?.scrollIntoView({ behavior: 'smooth' })
-                }
-                className="btn btn-circle"
-              >
-                ❯
-              </button>
-            </div>
-          )}
         </div>
         <div className="flex justify-center mt-4 md:hidden">
           {slides.map((_, index) => (
@@ -419,7 +399,11 @@ const HomePage = () => {
     );
   };
 
-  const renderList = (books: Book[]) => {
+  const renderList = (
+    books: Book[],
+    currentPage: number,
+    setPage: (page: number) => void
+  ) => {
     const startIndex = (currentPage - 1) * itemsPerPage;
     const endIndex = startIndex + itemsPerPage;
     const paginatedBooks = books.slice(startIndex, endIndex);
@@ -430,7 +414,7 @@ const HomePage = () => {
         <div className="flex justify-between items-center mb-4">
           <button
             className={`btn btn-xs btn-secondary`}
-            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            onClick={() => setPage(Math.max(currentPage - 1, 1))}
             disabled={currentPage === 1}
           >
             ❮
@@ -441,8 +425,11 @@ const HomePage = () => {
           <button
             className={`btn btn-xs btn-secondary`}
             onClick={() =>
-              setCurrentPage((prev) =>
-                Math.min(prev + 1, Math.ceil(books.length / itemsPerPage))
+              setPage(
+                Math.min(
+                  currentPage + 1,
+                  Math.ceil(books.length / itemsPerPage)
+                )
               )
             }
             disabled={currentPage === Math.ceil(books.length / itemsPerPage)}
@@ -552,7 +539,7 @@ const HomePage = () => {
           </div>
           {view === 'carousel'
             ? renderCarousel(result.books, 'result-slide')
-            : renderList(result.books)}
+            : renderList(result.books, currentPage, setCurrentPage)}
         </div>
       )}
       {loadingFavorites ? (
@@ -579,7 +566,7 @@ const HomePage = () => {
             </div>
             {favoritesView === 'carousel'
               ? renderCarousel(favorites, 'favorite-slide')
-              : renderList(favorites)}
+              : renderList(favorites, currentPage, setCurrentPage)}
           </div>
         )
       )}
