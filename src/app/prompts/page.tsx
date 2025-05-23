@@ -301,37 +301,24 @@ const HomePage = () => {
       slides.push(books.slice(i, i + itemsPerSlide));
     }
 
-    const handleDotClick = (index: number) => {
-      setCurrentSlide(index);
-      document
-        .getElementById(`${idPrefix}${index}`)
-        ?.scrollIntoView({ behavior: 'smooth' });
-    };
-
-    const handleScroll = () => {
-      const carousel = document.querySelector('.carousel');
-      const scrollLeft = carousel?.scrollLeft || 0;
-      const slideWidth = carousel?.clientWidth || 0;
-      const newIndex = Math.round(scrollLeft / slideWidth);
-      setCurrentSlide(newIndex);
-    };
-
     return (
       <div>
         <div
           className="carousel w-full overflow-x-scroll snap-x snap-mandatory"
           onTouchStart={() => setShowArrows(false)}
           onTouchEnd={() => setShowArrows(true)}
-          onScroll={handleScroll}
         >
           {slides.map((slide, index) => (
             <div
               id={`${idPrefix}${index}`}
-              className="carousel-item relative w-full flex justify-center snap-center"
+              className="carousel-item relative w-full flex justify-center snap-center transition-transform duration-500 ease-in-out"
               key={index}
             >
               {slide.map((book) => (
-                <div key={book.isbn} className="card w-1/3 p-2 relative">
+                <div
+                  key={book.isbn}
+                  className="card w-1/3 p-2 relative hover:scale-105 transition-transform duration-300 ease-in-out"
+                >
                   <img
                     src={
                       typeof book.image === 'string'
@@ -339,7 +326,7 @@ const HomePage = () => {
                         : defaultCover.src
                     }
                     alt={`${book.name} cover`}
-                    className="w-full h-48 object-cover"
+                    className="w-full h-48 object-cover rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
                     onError={(e) => {
                       e.currentTarget.src = defaultCover.src;
                     }}
@@ -348,14 +335,6 @@ const HomePage = () => {
                     <div className="mt-2">
                       <strong className="block truncate">{book.name}</strong>
                       <p className="block truncate">{book.author}</p>
-                      {book.averageRating !== null && (
-                        <div className="flex flex-wrap items-center">
-                          {renderStars(book.averageRating)}
-                          <span className="md:ml-2 text-sm text-gray-600 w-full sm:w-auto">
-                            {book.ratingsCount ? `(${book.ratingsCount})` : ''}
-                          </span>
-                        </div>
-                      )}
                     </div>
                   </Link>
                   <button
@@ -363,7 +342,7 @@ const HomePage = () => {
                       e.stopPropagation();
                       addToFavorites(book);
                     }}
-                    className="absolute top-2 right-2 text-2xl px-2"
+                    className="absolute top-2 right-2 text-2xl px-2 hover:scale-110 transition-transform duration-300"
                     title="Add to Favorites"
                   >
                     <FontAwesomeIcon
@@ -375,36 +354,7 @@ const HomePage = () => {
                   </button>
                 </div>
               ))}
-              {showArrows && (
-                <div className="hidden md:flex absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
-                  <a
-                    href={`#${idPrefix}${
-                      (index - 1 + slides.length) % slides.length
-                    }`}
-                    className="btn btn-circle"
-                  >
-                    ❮
-                  </a>
-                  <a
-                    href={`#${idPrefix}${(index + 1) % slides.length}`}
-                    className="btn btn-circle"
-                  >
-                    ❯
-                  </a>
-                </div>
-              )}
             </div>
-          ))}
-        </div>
-        <div className="flex justify-center mt-4 md:hidden">
-          {slides.map((_, index) => (
-            <button
-              key={index}
-              className={`btn-secondary mx-1 w-2 h-2 rounded-full ${
-                currentSlide === index ? 'bg-gray-800' : 'bg-gray-400'
-              }`}
-              onClick={() => handleDotClick(index)}
-            />
           ))}
         </div>
       </div>

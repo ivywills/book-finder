@@ -166,15 +166,18 @@ const BookPage = () => {
           {slides.map((slide, index) => (
             <div
               id={`${idPrefix}${index}`}
-              className="carousel-item relative w-full flex justify-center snap-center"
+              className="carousel-item relative w-full flex justify-center snap-center transition-transform duration-500 ease-in-out"
               key={index}
             >
               {slide.map((book) => (
-                <div key={book.isbn} className="card w-1/3 p-2 relative">
+                <div
+                  key={book.isbn}
+                  className="card w-1/3 p-2 relative hover:scale-105 transition-transform duration-300 ease-in-out"
+                >
                   <img
                     src={book.image || defaultCover.src}
                     alt={`${book.name} cover`}
-                    className="w-full h-48 object-cover"
+                    className="w-full h-48 object-cover rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
                     onError={(e) => {
                       e.currentTarget.src = defaultCover.src;
                     }}
@@ -265,11 +268,16 @@ const BookPage = () => {
           <strong>Categories:</strong> {book.categories.join(', ')}
         </p>
       )}
-      <button className="btn btn-primary mt-4" onClick={handleShare}>
+      <button
+        className="btn btn-primary mt-4 hover:bg-blue-600 transition-colors duration-300"
+        onClick={handleShare}
+      >
         Share this book
       </button>
       {linkCopied && (
-        <p className="text-green-500 mt-2">Link copied to clipboard!</p>
+        <p className="text-green-500 mt-2 animate-pulse">
+          Link copied to clipboard!
+        </p>
       )}
       {loadingSuggestions ? (
         <div className="flex justify-center items-center mt-6">
