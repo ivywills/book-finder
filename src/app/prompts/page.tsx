@@ -39,6 +39,8 @@ const HomePage = () => {
     'carousel'
   );
   const [loadingFavorites, setLoadingFavorites] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 5; // Limit the number of books per page to 5
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -301,12 +303,29 @@ const HomePage = () => {
       slides.push(books.slice(i, i + itemsPerSlide));
     }
 
+    const handleDotClick = (index: number) => {
+      setCurrentSlide(index);
+      document
+        .getElementById(`${idPrefix}${index}`)
+        ?.scrollIntoView({ behavior: 'smooth' });
+    };
+
+    const handleScroll = () => {
+      const carousel = document.querySelector(`#${idPrefix}-carousel`);
+      const scrollLeft = carousel?.scrollLeft || 0;
+      const slideWidth = carousel?.clientWidth || 0;
+      const newIndex = Math.round(scrollLeft / slideWidth);
+      setCurrentSlide(newIndex);
+    };
+
     return (
       <div>
         <div
-          className="carousel w-full overflow-x-scroll snap-x snap-mandatory"
+          id={`${idPrefix}-carousel`}
+          className="carousel w-full overflow-x-scroll snap-x snap-mandatory relative"
           onTouchStart={() => setShowArrows(false)}
           onTouchEnd={() => setShowArrows(true)}
+          onScroll={handleScroll}
         >
           {slides.map((slide, index) => (
             <div
@@ -356,55 +375,133 @@ const HomePage = () => {
               ))}
             </div>
           ))}
+          {showArrows && (
+            <div className="hidden md:flex absolute left-5 right-5 top-1/2 transform -translate-y-1/2 justify-between">
+              <button
+                onClick={() =>
+                  document
+                    .getElementById(
+                      `${idPrefix}${(currentSlide - 1 + slides.length) % slides.length}`
+                    )
+                    ?.scrollIntoView({ behavior: 'smooth' })
+                }
+                className="btn btn-circle"
+              >
+                ❮
+              </button>
+              <button
+                onClick={() =>
+                  document
+                    .getElementById(
+                      `${idPrefix}${(currentSlide + 1) % slides.length}`
+                    )
+                    ?.scrollIntoView({ behavior: 'smooth' })
+                }
+                className="btn btn-circle"
+              >
+                ❯
+              </button>
+            </div>
+          )}
+        </div>
+        <div className="flex justify-center mt-4 md:hidden">
+          {slides.map((_, index) => (
+            <button
+              key={index}
+              className={`btn-secondary mx-1 w-2 h-2 rounded-full ${
+                currentSlide === index ? 'bg-gray-800' : 'bg-gray-400'
+              }`}
+              onClick={() => handleDotClick(index)}
+            />
+          ))}
         </div>
       </div>
     );
   };
 
   const renderList = (books: Book[]) => {
+    const startIndex = (currentPage - 1) * itemsPerPage;
+    const endIndex = startIndex + itemsPerPage;
+    const paginatedBooks = books.slice(startIndex, endIndex);
+
     return (
-      <ul className="pl-5">
-        {books.map((book) => (
-          <li key={book.isbn} className="mb-4">
-            <div className="flex items-center">
-              <img
-                src={
-                  typeof book.image === 'string' ? book.image : defaultCover.src
-                }
-                alt={`${book.name} cover`}
-                className="w-16 h-24 object-cover mr-4"
-                onError={(e) => {
-                  e.currentTarget.src = defaultCover.src;
-                }}
-              />
-              <div>
-                <Link href={`/prompts/${encodeURIComponent(book.name)}`}>
-                  <strong className="block truncate">{book.name}</strong>
-                </Link>
-                <p className="block truncate">{book.author}</p>
-                {book.averageRating !== null && (
-                  <div className="flex items-center">
-                    {renderStars(book.averageRating)}
-                    <span className="ml-2 text-sm text-gray-600">
-                      {book.ratingsCount ? `(${book.ratingsCount})` : ''}
-                    </span>
-                  </div>
-                )}
-                <button
-                  onClick={() => addToFavorites(book)}
-                  className="text-2xl px-2"
-                  title="Add to Favorites"
-                >
-                  <FontAwesomeIcon
-                    icon={isFavorite(book) ? solidHeart : regularHeart}
-                    className={isFavorite(book) ? 'text-red-500' : 'text-white'}
-                  />
-                </button>
+      <div>
+        {/* Centered Pagination Controls */}
+        <div className="flex justify-between items-center mb-4">
+          <button
+            className={`btn btn-xs btn-secondary`}
+            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+            disabled={currentPage === 1}
+          >
+            ❮
+          </button>
+          <span className="text-sm font-medium text-gray-600 mx-4">
+            Page {currentPage} of {Math.ceil(books.length / itemsPerPage)}
+          </span>
+          <button
+            className={`btn btn-xs btn-secondary`}
+            onClick={() =>
+              setCurrentPage((prev) =>
+                Math.min(prev + 1, Math.ceil(books.length / itemsPerPage))
+              )
+            }
+            disabled={currentPage === Math.ceil(books.length / itemsPerPage)}
+          >
+            ❯
+          </button>
+        </div>
+        {/* Books List */}
+        <ul className="pl-5">
+          {paginatedBooks.map((book) => (
+            <li key={book.isbn} className="mb-4">
+              <div className="flex items-center">
+                <img
+                  src={
+                    typeof book.image === 'string'
+                      ? book.image
+                      : defaultCover.src
+                  }
+                  alt={`${book.name} cover`}
+                  className="w-16 h-24 object-cover mr-4 rounded-md shadow-sm"
+                  onError={(e) => {
+                    e.currentTarget.src = defaultCover.src;
+                  }}
+                />
+                <div>
+                  <Link href={`/prompts/${encodeURIComponent(book.name)}`}>
+                    <strong className="block truncate text-lg text-gray-800">
+                      {book.name}
+                    </strong>
+                  </Link>
+                  <p className="block truncate text-sm text-gray-600">
+                    {book.author}
+                  </p>
+                  {book.averageRating !== null && (
+                    <div className="flex items-center mt-1">
+                      {renderStars(book.averageRating)}
+                      <span className="ml-2 text-xs text-gray-500">
+                        {book.ratingsCount ? `(${book.ratingsCount})` : ''}
+                      </span>
+                    </div>
+                  )}
+                  <button
+                    onClick={() => addToFavorites(book)}
+                    className="text-2xl px-2 mt-2"
+                    title="Add to Favorites"
+                  >
+                    <FontAwesomeIcon
+                      icon={isFavorite(book) ? solidHeart : regularHeart}
+                      className={
+                        isFavorite(book) ? 'text-red-500' : 'text-gray-400'
+                      }
+                    />
+                  </button>
+                </div>
               </div>
-            </div>
-          </li>
-        ))}
-      </ul>
+            </li>
+          ))}
+        </ul>
+      </div>
     );
   };
 
@@ -443,19 +540,19 @@ const HomePage = () => {
       {result && (
         <div className="mt-5">
           <h2 className="mb-4">Suggested Reads:</h2>
-          {view === 'carousel'
-            ? renderCarousel(result.books, 'result-slide')
-            : renderList(result.books)}
-          <div className="mt-2 flex justify-end">
+          <div className="flex justify-end mb-4">
             <button
-              className={`btn btn-xs ${
-                view === 'carousel' ? 'btn-primary' : 'btn-secondary'
+              className={`btn btn-sm ${
+                view === 'list' ? 'btn-secondary' : 'btn-primary'
               }`}
               onClick={() => setView(view === 'carousel' ? 'list' : 'carousel')}
             >
               {view === 'carousel' ? 'List View' : 'Carousel View'}
             </button>
           </div>
+          {view === 'carousel'
+            ? renderCarousel(result.books, 'result-slide')
+            : renderList(result.books)}
         </div>
       )}
       {loadingFavorites ? (
@@ -466,13 +563,10 @@ const HomePage = () => {
         favorites.length > 0 && (
           <div className="mt-5">
             <h2 className="mb-4">Favorites:</h2>
-            {favoritesView === 'carousel'
-              ? renderCarousel(favorites, 'favorite-slide')
-              : renderList(favorites)}
-            <div className="mt-2 flex justify-end">
+            <div className="flex justify-end mb-4">
               <button
-                className={`btn btn-xs ${
-                  favoritesView === 'carousel' ? 'btn-primary' : 'btn-secondary'
+                className={`btn btn-sm ${
+                  favoritesView === 'list' ? 'btn-secondary' : 'btn-primary'
                 }`}
                 onClick={() =>
                   setFavoritesView(
@@ -483,6 +577,9 @@ const HomePage = () => {
                 {favoritesView === 'carousel' ? 'List View' : 'Carousel View'}
               </button>
             </div>
+            {favoritesView === 'carousel'
+              ? renderCarousel(favorites, 'favorite-slide')
+              : renderList(favorites)}
           </div>
         )
       )}
