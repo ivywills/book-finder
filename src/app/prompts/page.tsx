@@ -30,7 +30,6 @@ const HomePage = () => {
   const [favorites, setFavorites] = useState<Book[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showArrows, setShowArrows] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
   const [theme, setTheme] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
@@ -330,8 +329,6 @@ const HomePage = () => {
         <div
           id={`${idPrefix}-carousel`}
           className="carousel w-full overflow-x-scroll snap-x snap-mandatory relative"
-          onTouchStart={() => setShowArrows(false)}
-          onTouchEnd={() => setShowArrows(true)}
           onScroll={handleScroll}
         >
           {slides.map((slide, index) => (
