@@ -506,33 +506,53 @@ const HomePage = () => {
 
   return (
     <div className="min-h-screen max-w-lg mx-auto p-5">
-      <h1 className="font-bold mb-6">Book Finder</h1>
-      <label htmlFor="prompt" className="block mb-2">
-        Please enter some books you like:
+      <h1 className="font-bold mb-6 text-center text-2xl">Book Finder</h1>
+      <label
+        htmlFor="prompt"
+        className="block mb-4 text-lg text-gray-700 text-center"
+      >
+        Describe the kind of book you want to read, and let AI discover it for
+        you:
       </label>
-      <form onSubmit={handleSubmit} className="flex items-center space-x-4">
-        <div className="flex-1">
-          <textarea
-            id="prompt"
-            className="textarea textarea-primary w-full focus:outline-none focus:ring-0"
-            placeholder="Enter a few books"
-            value={prompt}
-            onChange={(e) => setPrompt(e.target.value)}
-            rows={1}
-          />
-        </div>
+      <form onSubmit={handleSubmit} className="relative mb-6">
+        {' '}
+        {/* Added mb-6 for more padding */}
+        <textarea
+          id="prompt"
+          className="textarea textarea-primary w-full h-20 resize-none rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none pr-12"
+          placeholder="E.g., A fantasy novel with dragons and magic..."
+          value={prompt}
+          onChange={(e) => setPrompt(e.target.value)}
+          rows={2}
+        />
         <button
           type="submit"
-          className="btn btn-primary flex-shrink-0 -mt-2"
+          className="mb-2 absolute bottom-2 right-2 bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={loading}
+          aria-label="Find Books"
         >
           {loading ? (
-            <>
-              <span className="loading loading-spinner"></span>
-              Finding Books
-            </>
+            <span className="loading loading-spinner"></span>
           ) : (
-            'Find Books'
+            <svg
+              xmlns="http://www.w3.org/2000/svg"
+              className="h-5 w-5"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+              strokeWidth={2}
+            >
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M22 2L11 13"
+              />
+              <path
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                d="M22 2L15 22L11 13L2 9L22 2Z"
+              />
+            </svg>
           )}
         </button>
       </form>
