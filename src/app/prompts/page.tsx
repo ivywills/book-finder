@@ -527,7 +527,7 @@ const HomePage = () => {
         />
         <button
           type="submit"
-          className="mb-2 absolute bottom-2 right-2 bg-blue-500 hover:bg-blue-600 text-white p-2 rounded-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="mb-2 absolute bottom-2 right-2 hover:bg-blue-600 text-white p-1 rounded-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={loading}
           aria-label="Find Books"
         >
@@ -536,7 +536,7 @@ const HomePage = () => {
           ) : (
             <svg
               xmlns="http://www.w3.org/2000/svg"
-              className="h-5 w-5"
+              className="h-5 w-4"
               fill="none"
               viewBox="0 0 24 24"
               stroke="currentColor"
