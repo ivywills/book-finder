@@ -420,8 +420,9 @@ const HomePage = () => {
   };
 
   const renderList = (books: Book[]) => {
+    const totalPages = Math.ceil(books.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = startIndex + itemsPerPage;
+    const endIndex = Math.min(startIndex + itemsPerPage, books.length); // Ensure endIndex does not exceed books.length
     const paginatedBooks = books.slice(startIndex, endIndex);
 
     return (
@@ -436,16 +437,14 @@ const HomePage = () => {
             ❮
           </button>
           <span className="text-sm font-medium text-gray-600 mx-4">
-            Page {currentPage} of {Math.ceil(books.length / itemsPerPage)}
+            Page {currentPage} of {totalPages}
           </span>
           <button
             className={`btn btn-xs btn-secondary`}
             onClick={() =>
-              setCurrentPage((prev) =>
-                Math.min(prev + 1, Math.ceil(books.length / itemsPerPage))
-              )
+              setCurrentPage((prev) => Math.min(prev + 1, totalPages))
             }
-            disabled={currentPage === Math.ceil(books.length / itemsPerPage)}
+            disabled={currentPage === totalPages}
           >
             ❯
           </button>
