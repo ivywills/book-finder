@@ -45,9 +45,6 @@ export default function Home() {
       ) : (
         <>
           <SignedIn>
-            <div className="absolute top-4 left-4">
-              <UserButton />
-            </div>
             <Link href="/prompts">
               <button className="btn btn-primary mt-4">
                 Find my next Book

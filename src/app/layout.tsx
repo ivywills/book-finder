@@ -5,6 +5,7 @@ import {
   SignedIn,
   SignedOut,
   SignInButton,
+  UserButton,
 } from '@clerk/nextjs';
 import './globals.css';
 import ThemeToggle from './theme-toggle';
@@ -33,13 +34,7 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en">
-      <head>
-        <script
-          async
-          src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5157675419011624"
-          crossorigin="anonymous"
-        ></script>
-      </head>
+      <head></head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
@@ -48,9 +43,11 @@ export default function RootLayout({
             <SignedIn>
               <div className="navbar bg-base-100 shadow-md sticky top-0 mb-4 z-50">
                 <div className="flex-1 flex items-center">
-                  <a href="/" className="md:block hidden text-xl">
-                    Book Finder
-                  </a>
+                  <div className="absolute top-5 left-4">
+                    {' '}
+                    {/* Adjusted top to 6 */}
+                    <UserButton />
+                  </div>
                 </div>
                 <div className="flex-none">
                   {/* Desktop Menu */}
@@ -95,9 +92,6 @@ export default function RootLayout({
                       tabIndex={0}
                       className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52"
                     >
-                      <li>
-                        <a href="/">Home</a>
-                      </li>
                       <li>
                         <a href="/prompts">Discover</a>
                       </li>
