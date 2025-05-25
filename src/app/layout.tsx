@@ -34,12 +34,10 @@ export default function RootLayout({
   return (
     <html lang="en">
       <head>
-        {/* eslint-disable-next-line @typescript-eslint/ban-ts-comment */}
-        {/* @ts-ignore: Property 'crossorigin' does not exist on type 'DetailedHTMLProps<ScriptHTMLAttributes<HTMLScriptElement>, HTMLScriptElement>'. */}
         <script
           async
           src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-5157675419011624"
-          crossOrigin="anonymous"
+          crossorigin="anonymous"
         ></script>
       </head>
       <body
@@ -48,17 +46,15 @@ export default function RootLayout({
         <ClerkProvider>
           <ConvexClientProvider>
             <SignedIn>
-              <div className="navbar bg-base-100">
+              <div className="navbar bg-base-100 shadow-md sticky top-0 mb-4 z-50">
                 <div className="flex-1 flex items-center">
                   <a href="/" className="md:block hidden text-xl">
                     Book Finder
                   </a>
                 </div>
                 <div className="flex-none">
-                  <ul className="menu menu-horizontal px-[0.25rem]">
-                    <li className="md:hidden block">
-                      <a href="/">Home</a>
-                    </li>
+                  {/* Desktop Menu */}
+                  <ul className="hidden md:flex menu menu-horizontal px-[0.25rem]">
                     <li>
                       <a href="/prompts">Discover</a>
                     </li>
@@ -72,6 +68,50 @@ export default function RootLayout({
                       <ThemeToggle />
                     </li>
                   </ul>
+
+                  {/* Mobile Hamburger Menu */}
+                  <div className="md:hidden dropdown dropdown-end">
+                    <label
+                      tabIndex={0}
+                      className="btn btn-ghost btn-circle"
+                      aria-label="Open Menu"
+                    >
+                      <svg
+                        xmlns="http://www.w3.org/2000/svg"
+                        className="h-6 w-6"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                        strokeWidth={2}
+                      >
+                        <path
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          d="M4 6h16M4 12h16m-7 6h7"
+                        />
+                      </svg>
+                    </label>
+                    <ul
+                      tabIndex={0}
+                      className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52"
+                    >
+                      <li>
+                        <a href="/">Home</a>
+                      </li>
+                      <li>
+                        <a href="/prompts">Discover</a>
+                      </li>
+                      <li>
+                        <a href="/reading-list">Profile</a>
+                      </li>
+                      <li>
+                        <a href="/friends">Friends</a>
+                      </li>
+                      <li>
+                        <ThemeToggle />
+                      </li>
+                    </ul>
+                  </div>
                 </div>
               </div>
             </SignedIn>

@@ -575,9 +575,7 @@ const HomePage = () => {
         </div>
       )}
       {loadingFavorites ? (
-        <div className="flex justify-center items-center min-h-screen -mt-40">
-          <span className="loading loading-spinner loading-md"></span>
-        </div>
+        <div className="flex justify-center items-center min-h-screen -mt-40"></div>
       ) : (
         favorites.length > 0 && (
           <div className="mt-5">
