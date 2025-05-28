@@ -136,28 +136,28 @@ export async function POST(req: NextRequest) {
     }
   } else if (payload.type === 'add.favorite') {
     const { userId, book } = payload.data;
-    const result = await usersCollection.updateOne(
+    await usersCollection.updateOne(
       { id: userId },
       { $addToSet: { favorites: book } },
       { upsert: true }
     );
   } else if (payload.type === 'add.currentlyReading') {
     const { userId, book } = payload.data;
-    const result = await usersCollection.updateOne(
+    await usersCollection.updateOne(
       { id: userId },
       { $set: { currentlyReading: { book, progress: 0 } } },
       { upsert: true }
     );
   } else if (payload.type === 'update.readingProgress') {
     const { userId, book, progress } = payload.data;
-    const result = await usersCollection.updateOne(
+    await usersCollection.updateOne(
       { id: userId, 'currentlyReading.book.title': book },
       { $set: { 'currentlyReading.progress': progress } },
       { upsert: true }
     );
   } else if (payload.type === 'add.completedBook') {
     const { userId, book } = payload.data;
-    const result = await usersCollection.updateOne(
+    await usersCollection.updateOne(
       { id: userId },
       { $addToSet: { completedBooks: book } },
       { upsert: true }
@@ -180,13 +180,13 @@ export async function POST(req: NextRequest) {
     }
   } else if (payload.type === 'remove.currentlyReading') {
     const { userId } = payload.data;
-    const result = await usersCollection.updateOne(
+    await usersCollection.updateOne(
       { id: userId },
       { $unset: { currentlyReading: "" } }
     );
   } else if (payload.type === 'update.profileImage') {
     const { userId, imageUrl } = payload.data;
-    const result = await usersCollection.updateOne(
+    await usersCollection.updateOne(
       { id: userId },
       { $set: { imageUrl } }
     );
