@@ -68,13 +68,11 @@ const HomePage = () => {
       setLoadingFavorites(true);
       try {
         const userId = user.id;
-        console.log('Fetching favorites for user:', userId); // Debugging line
         const response = await fetch(`/api/clerk?userId=${userId}`);
         if (!response.ok) {
           throw new Error('No favorites found for user');
         }
         const data = await response.json();
-        console.log('Fetched data:', data); // Debugging line
         if (data.userProfile && data.userProfile.favorites) {
           const updatedFavorites = await fetchImages(
             data.userProfile.favorites
@@ -148,7 +146,7 @@ const HomePage = () => {
   }, []);
 
   if (!mounted) {
-    return null; // Render nothing until the theme is set
+    return null;
   }
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
@@ -158,7 +156,6 @@ const HomePage = () => {
     try {
       const result = await generatePrompts(prompt);
       if (result) {
-        // Set the result immediately with books with default cover images
         const booksWithDefaultImages = result.books.map((book) => ({
           ...book,
           image: defaultCover.src,
@@ -171,7 +168,6 @@ const HomePage = () => {
           JSON.stringify({ books: booksWithDefaultImages })
         );
 
-        // Fetch images and reviews asynchronously
         const booksWithImages = await Promise.all(
           result.books.map(async (book) => {
             const apiUrl = book.name
@@ -212,7 +208,6 @@ const HomePage = () => {
           })
         );
 
-        // Update the result with books with images and reviews
         setResult({ books: booksWithImages });
         Cookies.set('result', JSON.stringify({ books: booksWithImages }));
       }
@@ -229,7 +224,6 @@ const HomePage = () => {
 
     try {
       const userId = user.id;
-      console.log('Adding to favorites:', book); // Debugging line
       const response = await fetch(`/api/clerk?userId=${userId}`, {
         method: 'POST',
         headers: {
@@ -249,7 +243,6 @@ const HomePage = () => {
           return [...prevFavorites, book];
         }
       });
-      console.log('Updated favorites:', favorites); // Debugging line
     } catch (error) {
       console.error('Error adding favorite:', error);
     }
@@ -298,7 +291,7 @@ const HomePage = () => {
 
   const renderCarousel = (books: Book[], idPrefix: string) => {
     const slides = [];
-    const itemsPerSlide = 3; // 3 items on mobile, 5 on larger screens
+    const itemsPerSlide = 3;
     for (let i = 0; i < books.length; i += itemsPerSlide) {
       slides.push(books.slice(i, i + itemsPerSlide));
     }
@@ -422,7 +415,7 @@ const HomePage = () => {
   const renderList = (books: Book[]) => {
     const totalPages = Math.ceil(books.length / itemsPerPage);
     const startIndex = (currentPage - 1) * itemsPerPage;
-    const endIndex = Math.min(startIndex + itemsPerPage, books.length); // Ensure endIndex does not exceed books.length
+    const endIndex = Math.min(startIndex + itemsPerPage, books.length);
     const paginatedBooks = books.slice(startIndex, endIndex);
 
     return (
@@ -515,7 +508,6 @@ const HomePage = () => {
       </label>
       <form onSubmit={handleSubmit} className="relative mb-6">
         {' '}
-        {/* Added mb-6 for more padding */}
         <textarea
           id="prompt"
           className="textarea textarea-primary w-full h-20 resize-none rounded-lg border border-gray-300 focus:ring-2 focus:ring-blue-500 focus:outline-none pr-12"
