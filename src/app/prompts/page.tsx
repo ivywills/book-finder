@@ -78,7 +78,6 @@ const HomePage = () => {
             data.userProfile.favorites
           );
           setFavorites(updatedFavorites);
-          console.log('Favorite Books:', updatedFavorites);
         } else {
           console.error('No favorites found for user');
           setError('No favorites found for user');

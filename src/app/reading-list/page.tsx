@@ -52,11 +52,6 @@ const ReadingPage = () => {
         if (data.userProfile.currentlyReading) {
           setConfirmedBook(data.userProfile.currentlyReading.book);
           setPagesRead(data.userProfile.currentlyReading.progress || 0);
-          console.log(
-            `Fetched progress: ${
-              data.userProfile.currentlyReading.progress || 0
-            }`
-          );
         }
         if (data.userProfile.completedBooks) {
           setCompletedBooks(data.userProfile.completedBooks);
@@ -207,7 +202,6 @@ const ReadingPage = () => {
         if (!response.ok) {
           throw new Error('Failed to update reading progress');
         }
-        console.log(`Updated progress: ${newPagesRead}`);
       } catch (err) {
         console.error('Error updating reading progress:', err);
         setError((err as Error).message);

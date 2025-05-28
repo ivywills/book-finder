@@ -191,7 +191,5 @@ export async function POST(req: NextRequest) {
       { $set: { imageUrl } }
     );
   }
-
-  console.log(payload);
   return NextResponse.json({ message: 'Received' }, { status: 200 });
 }

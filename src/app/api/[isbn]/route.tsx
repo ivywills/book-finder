@@ -16,10 +16,6 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const title = searchParams.get('title');
 
-  console.log('Request URL:', req.url);
-  console.log('Title:', title);
-  console.log('Google Books API Key:', process.env.GOOGLE_BOOKS_API_KEY);
-
   if (!title) {
     console.error('Invalid title');
     return NextResponse.json({ error: 'Invalid title' }, { status: 400 });
@@ -34,7 +30,6 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    console.log(`Fetching book details for title: ${title}`);
     const response = await fetch(
       `https://www.googleapis.com/books/v1/volumes?q=intitle:${title}&key=${process.env.GOOGLE_BOOKS_API_KEY}`
     );
@@ -44,7 +39,6 @@ export async function GET(req: NextRequest) {
     }
 
     const data = await response.json();
-    console.log('Book data:', data);
     const bookData = data.items?.[0]?.volumeInfo;
 
     if (!bookData) {
@@ -64,7 +58,6 @@ export async function GET(req: NextRequest) {
       categories: bookData.categories || null,
     };
 
-    console.log('Book details fetched successfully:', book);
     return NextResponse.json(book, { status: 200 });
   } catch (error) {
     const errorMessage =

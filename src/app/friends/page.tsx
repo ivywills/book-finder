@@ -89,7 +89,6 @@ const FriendsPage = () => {
       }
       const profileData = await profileResponse.json();
       const profileImageUrl = profileData.imageUrl || defaultProfilePic.src;
-      console.log('Friend Data:', profileData);
 
       const response = await fetch('/api/clerk', {
         method: 'POST',

@@ -21,7 +21,6 @@ interface Book {
 const BookPage = () => {
   const pathname = usePathname();
   const title = decodeURIComponent(pathname.split('/').pop() || '');
-  console.log(title);
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -34,7 +33,6 @@ const BookPage = () => {
     if (title) {
       const fetchBookDetails = async () => {
         try {
-          console.log(`Fetching book details for title: ${title}`);
           const response = await fetch(
             `https://www.googleapis.com/books/v1/volumes?q=intitle:${title}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
           );
@@ -42,7 +40,6 @@ const BookPage = () => {
             throw new Error('Failed to fetch book details');
           }
           const data = await response.json();
-          console.log('Book details fetched successfully:', data);
           const bookData = data.items?.[0]?.volumeInfo;
 
           if (!bookData) {

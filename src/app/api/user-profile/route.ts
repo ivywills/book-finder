@@ -22,8 +22,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    console.log('Fetched user profile:', user);
-
     const userProfile = {
       id: user.id,
       firstName: user.firstName,

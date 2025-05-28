@@ -30,6 +30,5 @@ export const send = mutation({
   handler: async (ctx, { body, sender, userId, otherUserId }) => {
     const timestamp = new Date().toISOString();
     const id = await ctx.db.insert("messages", { body, sender, userId, otherUserId, timestamp });
-    console.log('Inserted message:', id, body, sender, userId, otherUserId, timestamp);
   },
 });

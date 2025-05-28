@@ -1,7 +1,6 @@
 import { MongoClient } from 'mongodb';
 
 const uri = process.env.MONGODB_URI;
-console.log(uri);
 if (!uri) {
   throw new Error('MONGODB_URI is not defined');
 }
