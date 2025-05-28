@@ -40,7 +40,7 @@ const HomePage = () => {
   );
   const [loadingFavorites, setLoadingFavorites] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 5; // Limit the number of books per page to 5
+  const itemsPerPage = 5;
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
@@ -427,7 +427,6 @@ const HomePage = () => {
 
     return (
       <div>
-        {/* Centered Pagination Controls */}
         <div className="flex justify-between items-center mb-4">
           <button
             className={`btn btn-xs btn-secondary`}
@@ -449,7 +448,7 @@ const HomePage = () => {
             ❯
           </button>
         </div>
-        {/* Books List */}
+
         <ul className="pl-5">
           {paginatedBooks.map((book) => (
             <li key={book.isbn} className="mb-4">
@@ -527,7 +526,7 @@ const HomePage = () => {
         />
         <button
           type="submit"
-          className="absolute bottom-2 right-2 hover:bg-blue-600 text-white p-1 rounded-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="absolute bottom-2 right-2 bg-blue-600 text-white p-1 rounded-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={loading}
           aria-label="Find Books"
         >
