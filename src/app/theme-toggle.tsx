@@ -32,7 +32,7 @@ export default function ThemeToggle() {
       setTheme(newTheme);
       localStorage.setItem('theme', newTheme);
     }
-    setDropdownOpen(false); // Close the dropdown when a theme is selected
+    setDropdownOpen(false);
   };
 
   const toggleDropdown = () => {

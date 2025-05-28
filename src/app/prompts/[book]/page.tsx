@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 import defaultCover from '../../default-cover.jpg';
-import { generatePrompts } from '../../../actions/open-ai'; // Import the function to generate suggestions
+import { generatePrompts } from '../../../actions/open-ai';
 import Link from 'next/link';
 
 interface Book {
@@ -139,7 +139,7 @@ const BookPage = () => {
       .share(shareData)
       .then(() => {
         setLinkCopied(true);
-        setTimeout(() => setLinkCopied(false), 2000); // Reset the copied state after 2 seconds
+        setTimeout(() => setLinkCopied(false), 2000);
       })
       .catch((error) => {
         console.error('Error sharing:', error);
@@ -155,7 +155,7 @@ const BookPage = () => {
 
   const renderCarousel = (books: Book[], idPrefix: string) => {
     const slides = [];
-    const itemsPerSlide = 3; // 3 items on mobile, 5 on larger screens
+    const itemsPerSlide = 3;
     for (let i = 0; i < books.length; i += itemsPerSlide) {
       slides.push(books.slice(i, i + itemsPerSlide));
     }

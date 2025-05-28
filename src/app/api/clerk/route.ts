@@ -4,7 +4,7 @@ import { MongoClient } from 'mongodb';
 interface Friend {
   id: string;
   name: string;
-  profileImageUrl?: string; // Add profile image URL
+  profileImageUrl?: string; 
 }
 
 interface WebhookEvent {
@@ -21,9 +21,9 @@ interface WebhookEvent {
       email_addresses: { email_address: string }[];
       first_name: string;
       last_name: string;
-      image_url?: string; // Add image_url
+      image_url?: string; 
     };
-    imageUrl?: string; // Add imageUrl for profile image update
+    imageUrl?: string; 
   };
 }
 
@@ -53,9 +53,6 @@ export async function GET(req: NextRequest) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });
     }
 
-    console.log('Fetched user profile:', user);
-
-    // Ensure imageUrl field exists
     if (!user.imageUrl) {
       user.imageUrl = '';
       await usersCollection.updateOne(
@@ -71,7 +68,7 @@ export async function GET(req: NextRequest) {
           id: friend.id,
           name: friendDetails?.firstName + ' ' + friendDetails?.lastName || friend.name,
           email: friendDetails?.email,
-          profileImageUrl: friendDetails?.imageUrl, // Add profile image URL
+          profileImageUrl: friendDetails?.imageUrl, 
         };
       })
     );
@@ -81,11 +78,11 @@ export async function GET(req: NextRequest) {
       firstName: user.firstName,
       lastName: user.lastName,
       email: user.email,
-      imageUrl: user.imageUrl, // Add imageUrl
+      imageUrl: user.imageUrl,
       friends: friendsDetails,
-      favorites: user.favorites || [], // Ensure favorites is included in the response
-      currentlyReading: user.currentlyReading || null, // Ensure currentlyReading is included in the response
-      completedBooks: user.completedBooks || [], // Ensure completedBooks is included in the response
+      favorites: user.favorites || [], 
+      currentlyReading: user.currentlyReading || null, 
+      completedBooks: user.completedBooks || [], 
     };
 
     return NextResponse.json({ userProfile }, { status: 200 });
@@ -130,49 +127,41 @@ export async function POST(req: NextRequest) {
         email: user.email_addresses[0].email_address,
         firstName: user.first_name,
         lastName: user.last_name,
-        imageUrl: user.image_url, // Add imageUrl
+        imageUrl: user.image_url, 
         createdAt: new Date(),
-        favorites: [], // Initialize favorites as an empty array
-        currentlyReading: null, // Initialize currentlyReading as null
-        completedBooks: [], // Initialize completedBooks as an empty array
+        favorites: [],
+        currentlyReading: null,
+        completedBooks: [], 
       });
     }
   } else if (payload.type === 'add.favorite') {
     const { userId, book } = payload.data;
-    console.log('Adding favorite book:', book); // Debugging line
     const result = await usersCollection.updateOne(
       { id: userId },
       { $addToSet: { favorites: book } },
       { upsert: true }
     );
-    console.log('Update result:', result); // Debugging line
   } else if (payload.type === 'add.currentlyReading') {
     const { userId, book } = payload.data;
-    console.log('Adding currently reading book:', book); // Debugging line
     const result = await usersCollection.updateOne(
       { id: userId },
       { $set: { currentlyReading: { book, progress: 0 } } },
       { upsert: true }
     );
-    console.log('Update result:', result); // Debugging line
   } else if (payload.type === 'update.readingProgress') {
     const { userId, book, progress } = payload.data;
-    console.log(`Updating progress for ${book}: ${progress}`); // Debugging line
     const result = await usersCollection.updateOne(
       { id: userId, 'currentlyReading.book.title': book },
       { $set: { 'currentlyReading.progress': progress } },
       { upsert: true }
     );
-    console.log('Update result:', result); // Debugging line
   } else if (payload.type === 'add.completedBook') {
     const { userId, book } = payload.data;
-    console.log('Adding completed book:', book); // Debugging line
     const result = await usersCollection.updateOne(
       { id: userId },
       { $addToSet: { completedBooks: book } },
       { upsert: true }
     );
-    console.log('Update result:', result); // Debugging line
   } else if (payload.type === 'add.friend') {
     const { userId, friendId, friendName } = payload.data;
     await usersCollection.updateOne(
@@ -191,20 +180,16 @@ export async function POST(req: NextRequest) {
     }
   } else if (payload.type === 'remove.currentlyReading') {
     const { userId } = payload.data;
-    console.log('Removing currently reading book for user:', userId); // Debugging line
     const result = await usersCollection.updateOne(
       { id: userId },
       { $unset: { currentlyReading: "" } }
     );
-    console.log('Update result:', result); // Debugging line
   } else if (payload.type === 'update.profileImage') {
     const { userId, imageUrl } = payload.data;
-    console.log('Updating profile image for user:', userId); // Debugging line
     const result = await usersCollection.updateOne(
       { id: userId },
       { $set: { imageUrl } }
     );
-    console.log('Update result:', result); // Debugging line
   }
 
   console.log(payload);

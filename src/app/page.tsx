@@ -27,12 +27,12 @@ export default function Home() {
   }, [theme]);
 
   useEffect(() => {
-    const timer = setTimeout(() => setLoading(false), 500); // Simulate loading delay
+    const timer = setTimeout(() => setLoading(false), 500);
     return () => clearTimeout(timer);
   }, []);
 
   if (!theme) {
-    return null; // Render nothing until the theme is set
+    return null;
   }
 
   return (

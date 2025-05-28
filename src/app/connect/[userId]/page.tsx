@@ -133,7 +133,7 @@ const UserProfilePage = () => {
 
   const renderCarousel = (books: Book[]) => {
     const slides = [];
-    const itemsPerSlide = 3; // Adjust the number of items per slide as needed
+    const itemsPerSlide = 3;
     for (let i = 0; i < books.length; i += itemsPerSlide) {
       slides.push(books.slice(i, i + itemsPerSlide));
     }

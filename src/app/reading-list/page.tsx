@@ -49,7 +49,6 @@ const ReadingPage = () => {
           throw new Error('Failed to fetch books');
         }
         const data = await response.json();
-        console.log('Fetched data:', data); // Debugging line
         if (data.userProfile.currentlyReading) {
           setConfirmedBook(data.userProfile.currentlyReading.book);
           setPagesRead(data.userProfile.currentlyReading.progress || 0);
@@ -270,9 +269,7 @@ const ReadingPage = () => {
       reader.onloadend = async () => {
         const base64Image = reader.result as string;
         await clerk.user?.setProfileImage({ file });
-        setProfileImage(base64Image); // Update the profile image state
-
-        // Update the profile image in the database
+        setProfileImage(base64Image);
         const response = await fetch('/api/clerk', {
           method: 'POST',
           headers: {
@@ -290,8 +287,6 @@ const ReadingPage = () => {
         if (!response.ok) {
           throw new Error('Failed to update profile image in database');
         }
-
-        // Optionally, you can refetch user data here to update the UI
       };
       reader.readAsDataURL(file);
     } catch (err) {
@@ -304,7 +299,7 @@ const ReadingPage = () => {
 
   const renderCarousel = (books: Book[], idPrefix: string) => {
     const slides = [];
-    const itemsPerSlide = 3; // 3 items on mobile, 5 on larger screens
+    const itemsPerSlide = 3;
     for (let i = 0; i < books.length; i += itemsPerSlide) {
       slides.push(books.slice(i, i + itemsPerSlide));
     }
@@ -349,7 +344,6 @@ const ReadingPage = () => {
                     onError={(e) => {
                       e.currentTarget.src = defaultCover.src;
                     }}
-                    priority // Add priority property
                   />
                   <div className="mt-2">
                     <strong className="block truncate">{book.title}</strong>
@@ -475,7 +469,6 @@ const ReadingPage = () => {
               width={96}
               height={144}
               className="object-cover mb-2"
-              priority // Add priority property
             />
           )}
           <p>
@@ -520,7 +513,6 @@ const ReadingPage = () => {
               width={96}
               height={144}
               className="object-cover mb-2"
-              priority // Add priority property
             />
           )}
           <p>

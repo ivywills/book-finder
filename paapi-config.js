@@ -1,4 +1,3 @@
-// aws-config.js
 import { Configuration } from 'amazon-paapi';
 
 const config = new Configuration({

@@ -9,7 +9,7 @@ interface Friend {
   id: string;
   name?: string;
   email?: string;
-  profileImageUrl?: string; // Add profile image URL
+  profileImageUrl?: string;
 }
 
 const FriendsPage = () => {
@@ -34,10 +34,8 @@ const FriendsPage = () => {
           throw new Error('Failed to fetch friends');
         }
         const data = await response.json();
-        console.log('Fetched Friends Data:', data);
         const friendsData = data.userProfile.friends ?? [];
 
-        // Use base64 imageUrl or default
         const friendsWithImages = friendsData.map((friend: Friend) => ({
           ...friend,
           profileImageUrl: friend.profileImageUrl || defaultProfilePic.src,
@@ -67,7 +65,7 @@ const FriendsPage = () => {
         })
         .then(() => {
           setLinkCopied(true);
-          setTimeout(() => setLinkCopied(false), 2000); // Reset the copied state after 2 seconds
+          setTimeout(() => setLinkCopied(false), 2000);
         })
         .catch((error) => {
           console.error('Error sharing:', error);
@@ -79,14 +77,12 @@ const FriendsPage = () => {
     if (!user) return;
 
     try {
-      // Fetch the user ID associated with the email
       const userIdResponse = await fetch(`/api/clerk?email=${friendEmail}`);
       if (!userIdResponse.ok) {
         throw new Error('Failed to fetch user ID');
       }
       const { userId: friendId } = await userIdResponse.json();
 
-      // Fetch the friend's profile image
       const profileResponse = await fetch(`/api/clerk?userId=${friendId}`);
       if (!profileResponse.ok) {
         throw new Error('Failed to fetch friend profile');
@@ -95,7 +91,6 @@ const FriendsPage = () => {
       const profileImageUrl = profileData.imageUrl || defaultProfilePic.src;
       console.log('Friend Data:', profileData);
 
-      // Add the friend using the fetched user ID
       const response = await fetch('/api/clerk', {
         method: 'POST',
         headers: {
