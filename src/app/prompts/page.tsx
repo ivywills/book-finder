@@ -517,7 +517,7 @@ const HomePage = () => {
         />
         <button
           type="submit"
-          className="absolute bottom-2 right-2 bg-blue-600 text-white p-1 rounded-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="absolute bottom-2 right-2 bg-blue-600 text-white pl-1 pr-2 py-1 m-1 rounded-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={loading}
           aria-label="Find Books"
         >
