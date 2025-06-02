@@ -452,7 +452,14 @@ const ReadingPage = () => {
   return (
     <div className="max-w-lg mx-auto p-5">
       {/* User Information */}
-      <h1 className="text-xl font-bold mt-8">Profile</h1>
+      <h1 className="font-bold mb-6 text-center text-2xl">Profile</h1>
+      <label
+        htmlFor="prompt"
+        className="block mb-4 text-lg text-primary text-center"
+      >
+        Start tracking the books you've loved — and the one you're reading right
+        now!
+      </label>
       <h1 className="text-l font-bold mb-6 mt-2">User Information</h1>
       <div className="mb-6 flex items-center relative">
         <Image
@@ -470,7 +477,11 @@ const ReadingPage = () => {
         </button>
 
         <div className="ml-4">
-          <h2 className="text-2xl font-bold">{user?.fullName}</h2>
+          <h2 className="text-2xl font-bold">
+            {user
+              ? user.fullName || user.primaryEmailAddress?.toString()
+              : 'Guest'}
+          </h2>
           <p className="text-lg">Books Read: {completedBooks.length}</p>
         </div>
       </div>
@@ -490,6 +501,7 @@ const ReadingPage = () => {
           </div>
         </>
       )}
+      <hr className="border-t-2 border-primary my-6" />
       <h1 className="text-l font-bold mb-6 mt-8">Add a book to Profile</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
@@ -561,6 +573,7 @@ const ReadingPage = () => {
           </div>
         </div>
       )}
+      <hr className="border-t-2 border-primary my-6" />
       <h1 className="text-l font-bold mb-6 mt-8">Currently Reading</h1>
       {confirmedBook ? (
         <div className="mb-6 p-4 border rounded-lg bg-base-300">
@@ -639,6 +652,7 @@ const ReadingPage = () => {
           the book you are currently reading.
         </div>
       )}
+      <hr className="border-t-2 border-primary my-6" />
       <h1 className="text-l font-bold mb-6 mt-8">Completed Books</h1>
       {completedBooks.length > 0 ? (
         renderCarousel(
