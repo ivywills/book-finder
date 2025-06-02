@@ -30,8 +30,8 @@ const HomePage = () => {
   const [favorites, setFavorites] = useState<Book[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [showArrows, setShowArrows] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [currentSlideFavorites, setCurrentSlideFavorites] = useState(0);
   const [theme, setTheme] = useState<string | null>(null);
   const [mounted, setMounted] = useState(false);
   const [view, setView] = useState<'carousel' | 'list'>('carousel');
@@ -288,47 +288,53 @@ const HomePage = () => {
     return stars;
   };
 
-  const renderCarousel = (books: Book[], idPrefix: string) => {
+  const renderCarousel = (
+    books: Book[],
+    idPrefix: string,
+    currentSlide: number,
+    setCurrentSlide: React.Dispatch<React.SetStateAction<number>>
+  ) => {
     const slides = [];
     const itemsPerSlide = 3;
     for (let i = 0; i < books.length; i += itemsPerSlide) {
       slides.push(books.slice(i, i + itemsPerSlide));
     }
 
-    const handleDotClick = (index: number) => {
-      setCurrentSlide(index);
-      document
-        .getElementById(`${idPrefix}${index}`)
-        ?.scrollIntoView({ behavior: 'smooth' });
+    const scrollToSlide = (carouselId: string, slideIndex: number) => {
+      const carousel = document.getElementById(carouselId);
+      if (carousel) {
+        const slideWidth = carousel.clientWidth;
+        carousel.scrollLeft = slideWidth * slideIndex;
+      }
     };
 
-    const handleScroll = () => {
-      const carousel = document.querySelector(`#${idPrefix}-carousel`);
-      const scrollLeft = carousel?.scrollLeft || 0;
-      const slideWidth = carousel?.clientWidth || 0;
-      const newIndex = Math.round(scrollLeft / slideWidth);
-      setCurrentSlide(newIndex);
+    const handleScroll = (carouselId: string) => {
+      const carousel = document.getElementById(carouselId);
+      if (carousel) {
+        const scrollLeft = carousel.scrollLeft;
+        const slideWidth = carousel.clientWidth;
+        const newSlideIndex = Math.round(scrollLeft / slideWidth);
+        setCurrentSlide(newSlideIndex);
+      }
     };
 
     return (
-      <div>
+      <div className="relative">
         <div
           id={`${idPrefix}-carousel`}
           className="carousel w-full overflow-x-scroll snap-x snap-mandatory relative"
-          onTouchStart={() => setShowArrows(false)}
-          onTouchEnd={() => setShowArrows(true)}
-          onScroll={handleScroll}
+          onScroll={() => handleScroll(`${idPrefix}-carousel`)}
         >
           {slides.map((slide, index) => (
             <div
               id={`${idPrefix}${index}`}
-              className="carousel-item relative w-full flex justify-center snap-center transition-transform duration-500 ease-in-out"
+              className="carousel-item relative w-full flex justify-center snap-center"
               key={index}
             >
               {slide.map((book) => (
                 <div
                   key={book.isbn}
-                  className="card w-1/3 p-2 relative hover:scale-105 transition-transform duration-300 ease-in-out"
+                  className="card w-1/3 p-2 relative hover:scale-105 transition-transform duration-300"
                 >
                   <img
                     src={
@@ -337,7 +343,7 @@ const HomePage = () => {
                         : defaultCover.src
                     }
                     alt={`${book.name} cover`}
-                    className="w-full h-48 object-cover rounded-lg shadow-md hover:shadow-lg transition-shadow duration-300"
+                    className="w-full h-48 object-cover rounded-lg shadow-md"
                     onError={(e) => {
                       e.currentTarget.src = defaultCover.src;
                     }}
@@ -353,7 +359,7 @@ const HomePage = () => {
                       e.stopPropagation();
                       addToFavorites(book);
                     }}
-                    className="absolute top-2 right-2 text-2xl px-2 hover:scale-110 transition-transform duration-300"
+                    className="absolute top-2 right-2 text-2xl px-2"
                     title="Add to Favorites"
                   >
                     <FontAwesomeIcon
@@ -367,35 +373,32 @@ const HomePage = () => {
               ))}
             </div>
           ))}
-          {showArrows && (
-            <div className="hidden md:flex absolute left-5 right-5 top-1/2 transform -translate-y-1/2 justify-between">
-              <button
-                onClick={() =>
-                  document
-                    .getElementById(
-                      `${idPrefix}${(currentSlide - 1 + slides.length) % slides.length}`
-                    )
-                    ?.scrollIntoView({ behavior: 'smooth' })
-                }
-                className="btn btn-circle"
-              >
-                ❮
-              </button>
-              <button
-                onClick={() =>
-                  document
-                    .getElementById(
-                      `${idPrefix}${(currentSlide + 1) % slides.length}`
-                    )
-                    ?.scrollIntoView({ behavior: 'smooth' })
-                }
-                className="btn btn-circle"
-              >
-                ❯
-              </button>
-            </div>
-          )}
         </div>
+        {showArrows && (
+          <div className="hidden md:flex absolute left-5 right-5 top-1/2 transform -translate-y-1/2 justify-between z-10">
+            <button
+              onClick={() => {
+                const prevSlideIndex =
+                  (currentSlide - 1 + slides.length) % slides.length;
+                setCurrentSlide(prevSlideIndex);
+                scrollToSlide(`${idPrefix}-carousel`, prevSlideIndex);
+              }}
+              className="btn btn-circle"
+            >
+              ❮
+            </button>
+            <button
+              onClick={() => {
+                const nextSlideIndex = (currentSlide + 1) % slides.length;
+                setCurrentSlide(nextSlideIndex);
+                scrollToSlide(`${idPrefix}-carousel`, nextSlideIndex);
+              }}
+              className="btn btn-circle"
+            >
+              ❯
+            </button>
+          </div>
+        )}
         <div className="flex justify-center mt-4 md:hidden">
           {slides.map((_, index) => (
             <button
@@ -403,7 +406,10 @@ const HomePage = () => {
               className={`btn-secondary mx-1 w-2 h-2 rounded-full ${
                 currentSlide === index ? 'bg-gray-800' : 'bg-gray-400'
               }`}
-              onClick={() => handleDotClick(index)}
+              onClick={() => {
+                setCurrentSlide(index);
+                scrollToSlide(`${idPrefix}-carousel`, index);
+              }}
             />
           ))}
         </div>
@@ -560,7 +566,12 @@ const HomePage = () => {
             </button>
           </div>
           {view === 'carousel'
-            ? renderCarousel(result.books, 'result-slide')
+            ? renderCarousel(
+                result.books,
+                'result-slide',
+                currentSlide,
+                setCurrentSlide
+              )
             : renderList(result.books)}
         </div>
       )}
@@ -585,7 +596,12 @@ const HomePage = () => {
               </button>
             </div>
             {favoritesView === 'carousel'
-              ? renderCarousel(favorites, 'favorite-slide')
+              ? renderCarousel(
+                  favorites,
+                  'favorite-slide',
+                  currentSlideFavorites,
+                  setCurrentSlideFavorites
+                )
               : renderList(favorites)}
           </div>
         )
