@@ -35,7 +35,6 @@ const ReadingPage = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
-  let showArrows = true;
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -398,31 +397,29 @@ const ReadingPage = () => {
             </div>
           ))}
         </div>
-        {showArrows && (
-          <div className="hidden md:flex absolute left-5 right-5 top-1/2 transform -translate-y-1/2 justify-between z-10">
-            <button
-              onClick={() => {
-                const prevSlideIndex =
-                  (currentSlide - 1 + slides.length) % slides.length;
-                setCurrentSlide(prevSlideIndex);
-                scrollToSlide(`${idPrefix}-carousel`, prevSlideIndex);
-              }}
-              className="btn btn-circle border-primary border-2 text-primary"
-            >
-              ❮
-            </button>
-            <button
-              onClick={() => {
-                const nextSlideIndex = (currentSlide + 1) % slides.length;
-                setCurrentSlide(nextSlideIndex);
-                scrollToSlide(`${idPrefix}-carousel`, nextSlideIndex);
-              }}
-              className="btn btn-circle border-primary border-2 text-primary"
-            >
-              ❯
-            </button>
-          </div>
-        )}
+        <div className="hidden md:flex absolute left-5 right-5 top-1/2 transform -translate-y-1/2 justify-between z-10">
+          <button
+            onClick={() => {
+              const prevSlideIndex =
+                (currentSlide - 1 + slides.length) % slides.length;
+              setCurrentSlide(prevSlideIndex);
+              scrollToSlide(`${idPrefix}-carousel`, prevSlideIndex);
+            }}
+            className="btn btn-circle border-primary border-2 text-primary"
+          >
+            ❮
+          </button>
+          <button
+            onClick={() => {
+              const nextSlideIndex = (currentSlide + 1) % slides.length;
+              setCurrentSlide(nextSlideIndex);
+              scrollToSlide(`${idPrefix}-carousel`, nextSlideIndex);
+            }}
+            className="btn btn-circle border-primary border-2 text-primary"
+          >
+            ❯
+          </button>
+        </div>
         <div className="flex justify-center mt-4 md:hidden">
           {slides.map((_, index) => (
             <button
