@@ -149,13 +149,18 @@ const HomePage = () => {
     return null;
   }
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (
+    e: React.FormEvent<HTMLFormElement>,
+    retryCount = 0
+  ) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+
     try {
       const result = await generatePrompts(prompt);
-      if (result) {
+
+      if (result && result.books.length > 0) {
         const booksWithDefaultImages = result.books.map((book) => ({
           ...book,
           image: defaultCover.src,
@@ -210,6 +215,10 @@ const HomePage = () => {
 
         setResult({ books: booksWithImages });
         Cookies.set('result', JSON.stringify({ books: booksWithImages }));
+      } else if (retryCount < 3) {
+        await handleSubmit(e, retryCount + 1);
+      } else {
+        setError('No books found after multiple attempts.');
       }
     } catch (err) {
       setError('Failed to generate prompt');
@@ -512,7 +521,7 @@ const HomePage = () => {
         Describe the kind of book you want to read, and let AI discover it for
         you:
       </label>
-      <form onSubmit={handleSubmit} className="relative mb-6">
+      <form onSubmit={(e) => handleSubmit(e)} className="relative mb-6">
         {' '}
         <textarea
           id="prompt"
