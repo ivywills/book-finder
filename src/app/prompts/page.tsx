@@ -409,7 +409,7 @@ const HomePage = () => {
                 setCurrentSlide(prevSlideIndex);
                 scrollToSlide(`${idPrefix}-carousel`, prevSlideIndex);
               }}
-              className="btn btn-circle"
+              className="btn btn-circle border-primary border-2 text-primary"
             >
               ❮
             </button>
@@ -419,7 +419,7 @@ const HomePage = () => {
                 setCurrentSlide(nextSlideIndex);
                 scrollToSlide(`${idPrefix}-carousel`, nextSlideIndex);
               }}
-              className="btn btn-circle"
+              className="btn btn-circle border-primary border-2 text-primary"
             >
               ❯
             </button>

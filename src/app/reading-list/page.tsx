@@ -8,6 +8,7 @@ import defaultCover from '../default-cover.jpg';
 import defaultProfilePic from '../friends/profile-pic.png';
 import { PencilIcon } from '@heroicons/react/outline';
 import { TrashIcon } from '@heroicons/react/outline';
+import { CheckCircleIcon } from '@heroicons/react/outline';
 
 interface Book {
   title: string;
@@ -176,8 +177,8 @@ const ReadingPage = () => {
     }
   };
 
-  const handleConfirmCompleted = async () => {
-    if (!user || !book) {
+  const handleConfirmCompleted = async (completedBook: Book) => {
+    if (!user || !completedBook) {
       return;
     }
 
@@ -193,7 +194,7 @@ const ReadingPage = () => {
           type: 'add.completedBook',
           data: {
             userId: user.id,
-            book,
+            book: completedBook,
           },
         }),
       });
@@ -202,9 +203,13 @@ const ReadingPage = () => {
         throw new Error('Failed to add completed book');
       }
 
-      setCompletedBooks([...completedBooks, book]);
+      const fetchCompletedBooks = await fetch(`/api/clerk?userId=${user.id}`);
+      if (fetchCompletedBooks.ok) {
+        const data = await fetchCompletedBooks.json();
+        setCompletedBooks(data.userProfile.completedBooks || []);
+      }
+
       setBook(null);
-      setTitle('');
     } catch (err) {
       console.error('Error adding completed book:', err);
     } finally {
@@ -320,35 +325,42 @@ const ReadingPage = () => {
     }
   };
 
-  const renderCarousel = (books: Book[], idPrefix: string) => {
+  const renderCarousel = (
+    books: Book[],
+    idPrefix: string,
+    currentSlide: number,
+    setCurrentSlide: React.Dispatch<React.SetStateAction<number>>
+  ) => {
     const slides = [];
     const itemsPerSlide = 3;
     for (let i = 0; i < books.length; i += itemsPerSlide) {
       slides.push(books.slice(i, i + itemsPerSlide));
     }
 
-    const handleDotClick = (index: number) => {
-      setCurrentSlide(index);
-      document
-        .getElementById(`${idPrefix}${index}`)
-        ?.scrollIntoView({ behavior: 'smooth' });
+    const scrollToSlide = (carouselId: string, slideIndex: number) => {
+      const carousel = document.getElementById(carouselId);
+      if (carousel) {
+        const slideWidth = carousel.clientWidth;
+        carousel.scrollLeft = slideWidth * slideIndex;
+      }
     };
 
-    const handleScroll = () => {
-      const carousel = document.querySelector('.carousel');
-      const scrollLeft = carousel?.scrollLeft || 0;
-      const slideWidth = carousel?.clientWidth || 0;
-      const newIndex = Math.round(scrollLeft / slideWidth);
-      setCurrentSlide(newIndex);
+    const handleScroll = (carouselId: string) => {
+      const carousel = document.getElementById(carouselId);
+      if (carousel) {
+        const scrollLeft = carousel.scrollLeft;
+        const slideWidth = carousel.clientWidth;
+        const newSlideIndex = Math.round(scrollLeft / slideWidth);
+        setCurrentSlide(newSlideIndex);
+      }
     };
 
     return (
-      <div>
+      <div className="relative">
         <div
-          className="carousel w-full overflow-x-scroll snap-x snap-mandatory"
-          onTouchStart={() => setShowArrows(false)}
-          onTouchEnd={() => setShowArrows(true)}
-          onScroll={handleScroll}
+          id={`${idPrefix}-carousel`}
+          className="carousel w-full overflow-x-scroll snap-x snap-mandatory relative"
+          onScroll={() => handleScroll(`${idPrefix}-carousel`)}
         >
           {slides.map((slide, index) => (
             <div
@@ -357,20 +369,25 @@ const ReadingPage = () => {
               key={index}
             >
               {slide.map((book) => (
-                <div key={book.title} className="card w-1/3 p-2 relative">
+                <div
+                  key={book.title}
+                  className="card w-1/3 p-4 relative hover:scale-105 transition-transform duration-300"
+                >
                   <Image
                     src={book.imageLinks?.thumbnail || defaultCover.src}
                     alt={`${book.title} cover`}
-                    width={96}
-                    height={144}
-                    className="object-cover"
+                    width={150}
+                    height={225}
+                    className="object-cover rounded-lg shadow-md w-full h-full"
                     onError={(e) => {
                       e.currentTarget.src = defaultCover.src;
                     }}
                   />
                   <div className="mt-2">
-                    <strong className="block truncate">{book.title}</strong>
-                    <p className="block truncate">
+                    <strong className="block truncate text-center">
+                      {book.title}
+                    </strong>
+                    <p className="block truncate text-center">
                       {book.authors
                         ? book.authors.join(', ')
                         : 'Unknown Author'}
@@ -378,27 +395,34 @@ const ReadingPage = () => {
                   </div>
                 </div>
               ))}
-              {showArrows && (
-                <div className="hidden md:flex absolute left-5 right-5 top-1/2 flex -translate-y-1/2 transform justify-between">
-                  <a
-                    href={`#${idPrefix}${
-                      (index - 1 + slides.length) % slides.length
-                    }`}
-                    className="btn btn-circle"
-                  >
-                    ❮
-                  </a>
-                  <a
-                    href={`#${idPrefix}${(index + 1) % slides.length}`}
-                    className="btn btn-circle"
-                  >
-                    ❯
-                  </a>
-                </div>
-              )}
             </div>
           ))}
         </div>
+        {showArrows && (
+          <div className="hidden md:flex absolute left-5 right-5 top-1/2 transform -translate-y-1/2 justify-between z-10">
+            <button
+              onClick={() => {
+                const prevSlideIndex =
+                  (currentSlide - 1 + slides.length) % slides.length;
+                setCurrentSlide(prevSlideIndex);
+                scrollToSlide(`${idPrefix}-carousel`, prevSlideIndex);
+              }}
+              className="btn btn-circle border-primary border-2 text-primary"
+            >
+              ❮
+            </button>
+            <button
+              onClick={() => {
+                const nextSlideIndex = (currentSlide + 1) % slides.length;
+                setCurrentSlide(nextSlideIndex);
+                scrollToSlide(`${idPrefix}-carousel`, nextSlideIndex);
+              }}
+              className="btn btn-circle border-primary border-2 text-primary"
+            >
+              ❯
+            </button>
+          </div>
+        )}
         <div className="flex justify-center mt-4 md:hidden">
           {slides.map((_, index) => (
             <button
@@ -406,7 +430,10 @@ const ReadingPage = () => {
               className={`btn-secondary mx-1 w-2 h-2 rounded-full ${
                 currentSlide === index ? 'bg-gray-800' : 'bg-gray-400'
               }`}
-              onClick={() => handleDotClick(index)}
+              onClick={() => {
+                setCurrentSlide(index);
+                scrollToSlide(`${idPrefix}-carousel`, index);
+              }}
             />
           ))}
         </div>
@@ -463,6 +490,7 @@ const ReadingPage = () => {
           </div>
         </>
       )}
+      <h1 className="text-l font-bold mb-6 mt-8">Add a book to Profile</h1>
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="title" className="block mb-2">
@@ -522,7 +550,11 @@ const ReadingPage = () => {
             </button>
             <button
               className="btn btn-success mt-2"
-              onClick={handleConfirmCompleted}
+              onClick={() => {
+                if (book) {
+                  handleConfirmCompleted(book);
+                }
+              }}
             >
               Completed Books
             </button>
@@ -580,22 +612,46 @@ const ReadingPage = () => {
             </>
           )}
           <button
-            className="btn mt-4"
+            className="btn mt-4 mx-2"
+            aria-label="complete"
+            onClick={async () => {
+              if (confirmedBook) {
+                await handleConfirmCompleted(confirmedBook);
+                await handleRemove();
+              }
+            }}
+          >
+            <CheckCircleIcon className="h-5 w-5" />
+            Complete
+          </button>
+          <button
+            className="btn mt-4 mx-2"
             aria-label="remove"
             onClick={handleRemove}
           >
-            <TrashIcon className="h-5 w-5 -mr-2" />
+            <TrashIcon className="h-5 w-5" />
             Remove
           </button>
         </div>
       ) : (
-        <div>No book is currently being read.</div>
+        <div>
+          No book is currently being read. Please use the search above to add
+          the book you are currently reading.
+        </div>
       )}
       <h1 className="text-l font-bold mb-6 mt-8">Completed Books</h1>
       {completedBooks.length > 0 ? (
-        renderCarousel(completedBooks, 'completed-slide')
+        renderCarousel(
+          completedBooks,
+          'completed-slide',
+          currentSlide,
+          setCurrentSlide
+        )
       ) : (
-        <div>No completed books yet.</div>
+        <div>
+          No completed books yet. Please use the search above to add the books
+          you've completed.
+        </div>
       )}
     </div>
   );
