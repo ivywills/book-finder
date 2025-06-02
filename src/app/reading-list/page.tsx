@@ -7,6 +7,7 @@ import Image from 'next/image';
 import defaultCover from '../default-cover.jpg';
 import defaultProfilePic from '../friends/profile-pic.png';
 import { PencilIcon } from '@heroicons/react/outline';
+import { TrashIcon } from '@heroicons/react/outline';
 
 interface Book {
   title: string;
@@ -424,6 +425,8 @@ const ReadingPage = () => {
   return (
     <div className="max-w-lg mx-auto p-5">
       {/* User Information */}
+      <h1 className="text-xl font-bold mt-8">Profile</h1>
+      <h1 className="text-l font-bold mb-6 mt-2">User Information</h1>
       <div className="mb-6 flex items-center relative">
         <Image
           src={profileImage || defaultProfilePic.src}
@@ -463,20 +466,24 @@ const ReadingPage = () => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="title" className="block mb-2">
-            Add Books
+            Add a book you're currently reading to track your progress, or
+            showcase a favorite you've already finished to share with friends!
           </label>
-          <input
-            type="text"
-            id="title"
-            className="input input-bordered w-full"
-            value={title}
-            onChange={(e) => setTitle(e.target.value)}
-            required
-          />
+          <div className="flex items-center space-x-2">
+            <input
+              type="text"
+              id="title"
+              className="input input-bordered flex-grow"
+              placeholder="🔍 Enter book title"
+              value={title}
+              onChange={(e) => setTitle(e.target.value)}
+              required
+            />
+            <button type="submit" className="btn btn-primary">
+              Search
+            </button>
+          </div>
         </div>
-        <button type="submit" className="btn btn-primary w-full">
-          Search
-        </button>
       </form>
       {loading && <div></div>}
       {book && (
@@ -522,9 +529,9 @@ const ReadingPage = () => {
           </div>
         </div>
       )}
-      <h1 className="text-xl font-bold mb-6 mt-8">Currently Reading</h1>
+      <h1 className="text-l font-bold mb-6 mt-8">Currently Reading</h1>
       {confirmedBook ? (
-        <div className="mb-6 p-4 border rounded-lg">
+        <div className="mb-6 p-4 border rounded-lg bg-base-300">
           <h2 className="text-xl font-bold mb-2">{confirmedBook.title}</h2>
           {confirmedBook.imageLinks && confirmedBook.imageLinks.thumbnail && (
             <Image
@@ -572,14 +579,19 @@ const ReadingPage = () => {
               </div>
             </>
           )}
-          <button className="btn btn-danger mt-4" onClick={handleRemove}>
+          <button
+            className="btn mt-4"
+            aria-label="remove"
+            onClick={handleRemove}
+          >
+            <TrashIcon className="h-5 w-5 -mr-2" />
             Remove
           </button>
         </div>
       ) : (
         <div>No book is currently being read.</div>
       )}
-      <h1 className="text-xl font-bold mb-6 mt-8">Completed Books</h1>
+      <h1 className="text-l font-bold mb-6 mt-8">Completed Books</h1>
       {completedBooks.length > 0 ? (
         renderCarousel(completedBooks, 'completed-slide')
       ) : (
