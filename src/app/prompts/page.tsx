@@ -71,7 +71,7 @@ const HomePage = () => {
         const userId = user.id;
         const response = await fetch(`/api/clerk?userId=${userId}`);
         if (!response.ok) {
-          throw new Error('No favorites found for user');
+          return;
         }
         const data = await response.json();
         if (data.userProfile && data.userProfile.favorites) {
@@ -91,7 +91,7 @@ const HomePage = () => {
   const fetchImages = async (books: Book[]) => {
     const booksWithImages = await Promise.all(
       books.map(async (book) => {
-        const apiUrl = book.name
+        const apiUrl = book?.name
           ? `https://www.googleapis.com/books/v1/volumes?q=intitle:${book.name}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
           : null;
         if (apiUrl) {
@@ -100,10 +100,13 @@ const HomePage = () => {
             if (response.ok) {
               const data = await response.json();
               const bookData = data.items?.[0]?.volumeInfo;
+              if (!bookData?.imageLinks?.thumbnail) {
+                return null;
+              }
               if (bookData) {
                 return {
                   ...book,
-                  image: bookData.imageLinks?.thumbnail || defaultCover.src,
+                  image: bookData.imageLinks?.thumbnail,
                   averageRating: bookData.averageRating || null,
                   ratingsCount: bookData.ratingsCount || null,
                 };
@@ -117,15 +120,34 @@ const HomePage = () => {
             console.error(`Error fetching data for title: ${book.name}`, error);
           }
         }
-        return {
-          ...book,
-          image: defaultCover.src,
-          averageRating: null,
-          ratingsCount: null,
-        };
+
+        // Fallback to Open Library API
+
+        if (book?.isbn) {
+          const openLibraryUrl = `https://openlibrary.org/api/books?bibkeys=ISBN:${book.isbn}&jscmd=data&format=json`;
+          const response = await fetch(openLibraryUrl);
+          if (response.ok) {
+            const data = await response.json();
+            const bookData = data[`ISBN:${book.isbn}`];
+            if (!bookData.cover?.medium) {
+              return null;
+            }
+            if (bookData) {
+              return {
+                ...book,
+                image: bookData.cover?.medium,
+                averageRating: null,
+                ratingsCount: null,
+              };
+            }
+          }
+        }
+
+        return null;
       })
     );
-    return booksWithImages;
+
+    return booksWithImages.filter((book) => book !== null);
   };
 
   useEffect(() => {
@@ -155,60 +177,62 @@ const HomePage = () => {
       const result = await generatePrompts(prompt);
 
       if (result && result.books.length > 0) {
-        const booksWithDefaultImages = result.books.map((book) => ({
-          ...book,
-          image: defaultCover.src,
-          averageRating: null,
-          ratingsCount: null,
-        }));
-        setResult({ books: booksWithDefaultImages });
-        Cookies.set(
-          'result',
-          JSON.stringify({ books: booksWithDefaultImages })
-        );
-
         const booksWithImages = await Promise.all(
           result.books.map(async (book) => {
-            const apiUrl = book.name
-              ? `https://www.googleapis.com/books/v1/volumes?q=intitle:${book.name}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
-              : null;
-            if (apiUrl) {
-              try {
+            try {
+              const apiUrl = book.name
+                ? `https://www.googleapis.com/books/v1/volumes?q=intitle:${book.name}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
+                : null;
+
+              if (apiUrl) {
                 const response = await fetch(apiUrl);
                 if (response.ok) {
                   const data = await response.json();
                   const bookData = data.items?.[0]?.volumeInfo;
-                  if (bookData) {
+
+                  if (bookData?.imageLinks?.thumbnail) {
                     return {
                       ...book,
-                      image: bookData.imageLinks?.thumbnail || defaultCover.src,
+                      image: bookData.imageLinks.thumbnail,
                       averageRating: bookData.averageRating || null,
                       ratingsCount: bookData.ratingsCount || null,
                     };
-                  } else {
-                    console.error(`No data found for title: ${book.name}`);
                   }
-                } else {
-                  console.error(`Failed to fetch data for title: ${book.name}`);
                 }
-              } catch (error) {
-                console.error(
-                  `Error fetching data for title: ${book.name}`,
-                  error
-                );
               }
+
+              // Fallback to Open Library API
+              if (book?.isbn) {
+                const openLibraryUrl = `https://openlibrary.org/api/books?bibkeys=ISBN:${book.isbn}&jscmd=data&format=json`;
+                const response = await fetch(openLibraryUrl);
+                if (response.ok) {
+                  const data = await response.json();
+                  const bookData = data[`ISBN:${book.isbn}`];
+
+                  if (bookData?.cover?.medium) {
+                    return {
+                      ...book,
+                      image: bookData.cover.medium,
+                      averageRating: null,
+                      ratingsCount: null,
+                    };
+                  }
+                }
+              }
+            } catch (error) {
+              console.error(
+                `Error fetching data for book: ${book.name || book.isbn}`,
+                error
+              );
             }
-            return {
-              ...book,
-              image: defaultCover.src,
-              averageRating: null,
-              ratingsCount: null,
-            };
+
+            return null; // Exclude books without valid images
           })
         );
 
-        setResult({ books: booksWithImages });
-        Cookies.set('result', JSON.stringify({ books: booksWithImages }));
+        const filteredBooks = booksWithImages.filter((book) => book !== null);
+        setResult({ books: filteredBooks });
+        Cookies.set('result', JSON.stringify({ books: filteredBooks }));
       } else if (retryCount < 3) {
         await handleSubmit(e, retryCount + 1);
       } else {
