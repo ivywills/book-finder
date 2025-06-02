@@ -46,7 +46,7 @@ const ReadingPage = () => {
       try {
         const response = await fetch(`/api/clerk?userId=${user.id}`);
         if (!response.ok) {
-          throw new Error('Failed to fetch books');
+          return;
         }
         const data = await response.json();
         if (data.userProfile.currentlyReading) {
