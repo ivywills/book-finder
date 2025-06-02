@@ -454,8 +454,8 @@ const ReadingPage = () => {
         htmlFor="prompt"
         className="block mb-4 text-lg text-primary text-center"
       >
-        Start tracking the books you've loved — and the one you're reading right
-        now!
+        Start tracking the books you&apos;ve loved — and the one you&apos;re
+        reading right now!
       </label>
       <h1 className="text-l font-bold mb-6 mt-2">User Information</h1>
       <div className="mb-6 flex items-center relative">
@@ -503,8 +503,9 @@ const ReadingPage = () => {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label htmlFor="title" className="block mb-2">
-            Add a book you're currently reading to track your progress, or
-            showcase a favorite you've already finished to share with friends!
+            Add a book you&apos;re currently reading to track your progress, or
+            showcase a favorite you&apos;ve already finished to share with
+            friends!
           </label>
           <div className="flex items-center space-x-2">
             <input
@@ -646,7 +647,7 @@ const ReadingPage = () => {
       ) : (
         <div>
           No book is currently being read. Please use the search above to add
-          the book you are currently reading.
+          the book you&apos;re currently reading.
         </div>
       )}
       <hr className="border-t-2 border-primary my-6" />
@@ -661,7 +662,7 @@ const ReadingPage = () => {
       ) : (
         <div>
           No completed books yet. Please use the search above to add the books
-          you've completed.
+          you&apos;ve completed.
         </div>
       )}
     </div>
