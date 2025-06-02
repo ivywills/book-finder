@@ -123,7 +123,7 @@ const FriendsPage = () => {
     <div className="max-w-lg mx-auto p-5">
       <h1 className="font-bold my-6 text-xl">Friends</h1>
       {loading ? (
-        <div>Loading...</div>
+        <div></div>
       ) : (
         <>
           {error && <div className="text-red-500 mb-4">{error}</div>}

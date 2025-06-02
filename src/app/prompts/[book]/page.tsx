@@ -37,13 +37,16 @@ const BookPage = () => {
             `https://www.googleapis.com/books/v1/volumes?q=intitle:${title}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
           );
           if (!response.ok) {
-            throw new Error('Failed to fetch book details');
+            throw new Error('Failed to fetch book details from Google Books');
           }
           const data = await response.json();
-          const bookData = data.items?.[0]?.volumeInfo;
+          const bookData = data.items?.find(
+            (item: { volumeInfo: { title: string } }) =>
+              item.volumeInfo.title.toLowerCase() === title.toLowerCase()
+          )?.volumeInfo;
 
           if (!bookData) {
-            throw new Error('Book not found');
+            throw new Error('Book not found in Google Books');
           }
 
           const book: Book = {
@@ -61,8 +64,48 @@ const BookPage = () => {
 
           setBook(book);
         } catch (err) {
-          console.error('Error fetching book details:', err);
-          setError((err as Error).message);
+          console.error('Error fetching book details from Google Books:', err);
+
+          // Fallback to Open Library
+          if (title) {
+            const openLibraryUrl = `https://openlibrary.org/search.json?title=${title}`;
+            try {
+              const response = await fetch(openLibraryUrl);
+              if (response.ok) {
+                const data = await response.json();
+                const bookData = data.docs?.find(
+                  (doc: { title: string }) =>
+                    doc.title.toLowerCase() === title.toLowerCase()
+                );
+
+                if (!bookData || !bookData.cover_i) {
+                  throw new Error(
+                    'Book not found or missing cover in Open Library'
+                  );
+                }
+
+                const book: Book = {
+                  name: bookData.title,
+                  author: bookData.author_name?.[0] || 'Unknown Author',
+                  isbn: bookData.isbn?.[0] || 'Unknown ISBN',
+                  image: `https://covers.openlibrary.org/b/id/${bookData.cover_i}-L.jpg`,
+                  description: bookData.first_sentence?.value || null,
+                  publisher: bookData.publisher?.[0] || null,
+                  publishedDate: bookData.publish_date?.[0] || null,
+                  pageCount: null,
+                  categories: null,
+                };
+
+                setBook(book);
+              }
+            } catch (err) {
+              console.error(
+                'Error fetching book details from Open Library:',
+                err
+              );
+              setError((err as Error).message);
+            }
+          }
         } finally {
           setLoading(false);
         }
@@ -77,7 +120,7 @@ const BookPage = () => {
 
   useEffect(() => {
     const fetchSuggestions = async () => {
-      if (!book) return;
+      if (!book || !book.isbn) return;
 
       setLoadingSuggestions(true);
       try {
@@ -85,8 +128,8 @@ const BookPage = () => {
         if (result && result.books) {
           const booksWithImages = await Promise.all(
             result.books.map(async (b) => {
-              const apiUrl = b.name
-                ? `https://www.googleapis.com/books/v1/volumes?q=intitle:${b.name}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
+              const apiUrl = b.isbn
+                ? `https://www.googleapis.com/books/v1/volumes?q=isbn:${b.isbn}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
                 : null;
               if (apiUrl) {
                 try {
@@ -94,29 +137,50 @@ const BookPage = () => {
                   if (response.ok) {
                     const data = await response.json();
                     const bookData = data.items?.[0]?.volumeInfo;
-                    if (bookData) {
+                    if (bookData && bookData.imageLinks?.thumbnail) {
                       return {
                         ...b,
-                        image:
-                          bookData.imageLinks?.thumbnail || defaultCover.src,
+                        image: bookData.imageLinks.thumbnail,
                       };
                     }
                   }
                 } catch (error) {
                   console.error(
-                    `Error fetching data for title: ${b.name}`,
+                    `Error fetching data for ISBN: ${b.isbn} from Google Books`,
                     error
                   );
                 }
               }
-              return { ...b, image: defaultCover.src };
+
+              const openLibraryUrl = `https://openlibrary.org/api/books?bibkeys=ISBN:${b.isbn}&jscmd=data&format=json`;
+              try {
+                const response = await fetch(openLibraryUrl);
+                if (response.ok) {
+                  const data = await response.json();
+                  const bookData = data[`ISBN:${b.isbn}`];
+                  if (bookData?.cover?.medium) {
+                    return {
+                      ...b,
+                      image: bookData.cover.medium,
+                    };
+                  }
+                }
+              } catch (error) {
+                console.error(
+                  `Error fetching data for ISBN: ${b.isbn} from Open Library`,
+                  error
+                );
+              }
+
+              return null;
             })
           );
-          // @ts-expect-error: Ignore type mismatch for booksWithImages
-          setSuggestedBooks(booksWithImages);
+          const validBooks = booksWithImages.filter((b) => b !== null);
+          // @ts-expect-error: Ignore type mismatch for validBooks
+          setSuggestedBooks(validBooks);
         }
       } catch (err) {
-        console.error('Error fetching suggestions:', err);
+        console.error('Error fetching suggestions from Google Books:', err);
       } finally {
         setLoadingSuggestions(false);
       }
@@ -195,7 +259,7 @@ const BookPage = () => {
   };
 
   if (loading) {
-    return <div>Loading...</div>;
+    return <div></div>;
   }
 
   if (error) {
@@ -277,9 +341,7 @@ const BookPage = () => {
         </p>
       )}
       {loadingSuggestions ? (
-        <div className="flex justify-center items-center mt-6">
-          <span className="loading loading-spinner loading-md"></span>
-        </div>
+        <div className="flex justify-center items-center mt-12"></div>
       ) : (
         suggestedBooks.length > 0 && (
           <div className="mt-8">

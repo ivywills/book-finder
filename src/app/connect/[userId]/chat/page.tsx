@@ -36,7 +36,7 @@ export default function ChatPage() {
   };
 
   if (messages === undefined) {
-    return <div>Loading...</div>;
+    return <div></div>;
   }
 
   const formatTimestamp = (timestamp: string) => {

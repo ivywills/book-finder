@@ -28,7 +28,6 @@ const ReadingPage = () => {
   const [confirmedBook, setConfirmedBook] = useState<Book | null>(null);
   const [completedBooks, setCompletedBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [pagesRead, setPagesRead] = useState<number>(0);
   const [initialLoad, setInitialLoad] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
@@ -41,7 +40,6 @@ const ReadingPage = () => {
       if (!user) return;
 
       setLoading(true);
-      setError(null);
 
       try {
         const response = await fetch(`/api/clerk?userId=${user.id}`);
@@ -61,7 +59,6 @@ const ReadingPage = () => {
         }
       } catch (err) {
         console.error('Error fetching books:', err);
-        setError((err as Error).message);
       } finally {
         setLoading(false);
         setInitialLoad(false);
@@ -74,7 +71,6 @@ const ReadingPage = () => {
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setLoading(true);
-    setError(null);
     setBook(null);
 
     try {
@@ -87,12 +83,9 @@ const ReadingPage = () => {
       const data = await response.json();
       if (data.items && data.items.length > 0) {
         setBook(data.items[0].volumeInfo);
-      } else {
-        setError('Book not found');
       }
     } catch (err) {
       console.error('Error fetching book details:', err);
-      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -100,12 +93,10 @@ const ReadingPage = () => {
 
   const handleConfirmCurrentlyReading = async () => {
     if (!user || !book) {
-      setError('No user or book selected');
       return;
     }
 
     setLoading(true);
-    setError(null);
 
     try {
       const response = await fetch('/api/clerk', {
@@ -131,7 +122,6 @@ const ReadingPage = () => {
       setTitle('');
     } catch (err) {
       console.error('Error updating currently reading book:', err);
-      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -139,12 +129,10 @@ const ReadingPage = () => {
 
   const handleConfirmCompleted = async () => {
     if (!user || !book) {
-      setError('No user or book selected');
       return;
     }
 
     setLoading(true);
-    setError(null);
 
     try {
       const response = await fetch('/api/clerk', {
@@ -170,7 +158,6 @@ const ReadingPage = () => {
       setTitle('');
     } catch (err) {
       console.error('Error adding completed book:', err);
-      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -204,19 +191,16 @@ const ReadingPage = () => {
         }
       } catch (err) {
         console.error('Error updating reading progress:', err);
-        setError((err as Error).message);
       }
     }
   };
 
   const handleRemove = async () => {
     if (!user || !confirmedBook) {
-      setError('No user or book selected');
       return;
     }
 
     setLoading(true);
-    setError(null);
 
     try {
       const response = await fetch('/api/clerk', {
@@ -240,7 +224,6 @@ const ReadingPage = () => {
       setPagesRead(0);
     } catch (err) {
       console.error('Error removing currently reading book:', err);
-      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -250,13 +233,11 @@ const ReadingPage = () => {
     e: React.ChangeEvent<HTMLInputElement>
   ) => {
     if (!user || !e.target.files || e.target.files.length === 0) {
-      setError('No user or file selected');
       return;
     }
 
     const file = e.target.files[0];
     setLoading(true);
-    setError(null);
 
     try {
       const reader = new FileReader();
@@ -285,7 +266,6 @@ const ReadingPage = () => {
       reader.readAsDataURL(file);
     } catch (err) {
       console.error('Error updating profile image:', err);
-      setError((err as Error).message);
     } finally {
       setLoading(false);
     }
@@ -451,8 +431,7 @@ const ReadingPage = () => {
           Search
         </button>
       </form>
-      {loading && <div>Loading...</div>}
-      {error && <div className="text-red-500 mt-4">{error}</div>}
+      {loading && <div></div>}
       {book && (
         <div className="mt-6 p-4 border rounded-lg">
           <h2 className="text-xl font-bold mb-2">{book.title}</h2>

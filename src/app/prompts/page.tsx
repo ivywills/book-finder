@@ -121,8 +121,6 @@ const HomePage = () => {
           }
         }
 
-        // Fallback to Open Library API
-
         if (book?.isbn) {
           const openLibraryUrl = `https://openlibrary.org/api/books?bibkeys=ISBN:${book.isbn}&jscmd=data&format=json`;
           const response = await fetch(openLibraryUrl);
