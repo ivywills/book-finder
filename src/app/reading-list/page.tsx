@@ -78,14 +78,62 @@ const ReadingPage = () => {
         `https://www.googleapis.com/books/v1/volumes?q=intitle:${title}&key=${process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY}`
       );
       if (!response.ok) {
-        throw new Error('Failed to fetch book details');
+        throw new Error('Failed to fetch book details from Google Books');
       }
       const data = await response.json();
       if (data.items && data.items.length > 0) {
-        setBook(data.items[0].volumeInfo);
+        const bookData = data.items[0].volumeInfo;
+        const book: Book = {
+          title: bookData.title,
+          authors: bookData.authors || ['Unknown Author'],
+          publisher: bookData.publisher || 'Unknown Publisher',
+          publishedDate: bookData.publishedDate || 'Unknown Date',
+          description: bookData.description || null,
+          pageCount: bookData.pageCount || null,
+          imageLinks: {
+            thumbnail: bookData.imageLinks?.thumbnail || null,
+          },
+        };
+        setBook(book);
+      } else {
+        throw new Error('Book not found in Google Books');
       }
     } catch (err) {
-      console.error('Error fetching book details:', err);
+      console.error('Error fetching book details from Google Books:', err);
+
+      const openLibraryUrl = `https://openlibrary.org/search.json?title=${title}`;
+      try {
+        const response = await fetch(openLibraryUrl);
+        if (response.ok) {
+          const data = await response.json();
+          const bookData = data.docs?.find(
+            (doc: { title: string }) =>
+              doc.title.toLowerCase() === title.toLowerCase()
+          );
+
+          if (!bookData || !bookData.cover_i) {
+            throw new Error('Book not found or missing cover in Open Library');
+          }
+
+          const book: Book = {
+            title: bookData.title,
+            authors: bookData.author_name || ['Unknown Author'],
+            publisher: bookData.publisher?.[0] || 'Unknown Publisher',
+            publishedDate: bookData.publish_date?.[0] || 'Unknown Date',
+            description: bookData.first_sentence?.value || null,
+            pageCount: 0,
+            imageLinks: {
+              thumbnail: `https://covers.openlibrary.org/b/id/${bookData.cover_i}-L.jpg`,
+            },
+          };
+
+          setBook(book);
+        } else {
+          throw new Error('Failed to fetch book details from Open Library');
+        }
+      } catch (err) {
+        console.error('Error fetching book details from Open Library:', err);
+      }
     } finally {
       setLoading(false);
     }

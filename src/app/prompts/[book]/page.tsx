@@ -23,7 +23,6 @@ const BookPage = () => {
   const title = decodeURIComponent(pathname.split('/').pop() || '');
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
   const [showFullDescription, setShowFullDescription] = useState(false);
   const [suggestedBooks, setSuggestedBooks] = useState<Book[]>([]);
@@ -103,7 +102,6 @@ const BookPage = () => {
                 'Error fetching book details from Open Library:',
                 err
               );
-              setError((err as Error).message);
             }
           }
         } finally {
@@ -114,7 +112,6 @@ const BookPage = () => {
       fetchBookDetails();
     } else {
       setLoading(false);
-      setError('Title not provided');
     }
   }, [title]);
 
@@ -260,10 +257,6 @@ const BookPage = () => {
 
   if (loading) {
     return <div></div>;
-  }
-
-  if (error) {
-    return <div className="text-red-500">{error}</div>;
   }
 
   if (!book) {
