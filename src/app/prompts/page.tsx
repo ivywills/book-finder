@@ -41,6 +41,7 @@ const HomePage = () => {
   const [loadingFavorites, setLoadingFavorites] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 5;
+  const showArrows = true;
 
   useEffect(() => {
     if (typeof window !== 'undefined') {
