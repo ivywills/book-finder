@@ -430,7 +430,7 @@ const ReadingPage = () => {
           alt="Profile"
           width={96}
           height={96}
-          className="rounded-full object-cover"
+          className="rounded-full object-cover aspect-square"
         />
         <button
           className="btn btn-solid btn-sm btn-circle btn-primary -ml-6 -mb-16"
@@ -446,7 +446,6 @@ const ReadingPage = () => {
       </div>
       {editMode && (
         <>
-          {/* Profile Image Upload Section */}
           <div className="mb-6">
             <label htmlFor="profileImage" className="block mb-2">
               Upload Profile Image
