@@ -500,7 +500,7 @@ const HomePage = () => {
       <h1 className="font-bold mb-6 text-center text-2xl">Book Finder</h1>
       <label
         htmlFor="prompt"
-        className="block mb-4 text-lg text-gray-700 text-center"
+        className="block mb-4 text-lg text-primary text-center"
       >
         Describe the kind of book you want to read, and let AI discover it for
         you:
@@ -517,7 +517,7 @@ const HomePage = () => {
         />
         <button
           type="submit"
-          className="absolute bottom-2 right-2 bg-blue-600 text-white pl-1 pr-2 py-1 m-1 rounded-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+          className="absolute bottom-1 right-2 text-primary pl-1 pr-1 py-1 m-1 rounded-full transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={loading}
           aria-label="Find Books"
         >
