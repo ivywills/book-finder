@@ -16,7 +16,6 @@ const FriendsPage = () => {
   const { user } = useUser();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
   const [shareLink, setShareLink] = useState<string | null>(null);
   const [linkCopied, setLinkCopied] = useState(false);
   const [newFriendEmail, setNewFriendEmail] = useState('');
@@ -26,7 +25,6 @@ const FriendsPage = () => {
       if (!user) return;
 
       setLoading(true);
-      setError(null);
 
       try {
         const response = await fetch(`/api/clerk?userId=${user.id}`);
@@ -44,7 +42,6 @@ const FriendsPage = () => {
         setFriends(friendsWithImages);
       } catch (err) {
         console.error('Error fetching friends:', err);
-        setError((err as Error).message);
       } finally {
         setLoading(false);
       }
@@ -115,7 +112,6 @@ const FriendsPage = () => {
       setNewFriendEmail('');
     } catch (err) {
       console.error('Error adding friend:', err);
-      setError((err as Error).message);
     }
   };
 
@@ -126,7 +122,6 @@ const FriendsPage = () => {
         <div></div>
       ) : (
         <>
-          {error && <div className="text-red-500 mb-4">{error}</div>}
           {(friends ?? []).length === 0 ? (
             <div>No friends added yet.</div>
           ) : (
