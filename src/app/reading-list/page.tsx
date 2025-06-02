@@ -33,9 +33,9 @@ const ReadingPage = () => {
   const [pagesRead, setPagesRead] = useState<number>(0);
   const [initialLoad, setInitialLoad] = useState(true);
   const [currentSlide, setCurrentSlide] = useState(0);
-  const [showArrows, setShowArrows] = useState(true);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
+  let showArrows = true;
 
   useEffect(() => {
     const fetchBooks = async () => {
