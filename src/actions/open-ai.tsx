@@ -22,7 +22,7 @@ export async function generatePrompts(prompt: string) {
       {
         role: 'system',
         content:
-          'You are an engine that makes book recommendations based on the books the user has read. You will return an array of json objects with the books name, author and isbn. please include at least 20 books',
+          'You are an engine that makes book recommendations based on the books the user has read. You will return an array of json objects with the books name, author and isbn. please include at least 10 books',
       },
       {
         role: 'user',
