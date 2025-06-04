@@ -54,7 +54,7 @@ export default function RootLayout({
                   {/* Desktop Menu */}
                   <ul className="hidden md:flex menu menu-horizontal px-[0.25rem]">
                     <li>
-                      <a href="/prompts">Discover</a>
+                      <a href="/">Home</a>
                     </li>
                     <li>
                       <a href="/reading-list">Profile</a>
@@ -94,7 +94,7 @@ export default function RootLayout({
                       className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52"
                     >
                       <li>
-                        <a href="/prompts">Discover</a>
+                        <a href="/">Home</a>
                       </li>
                       <li>
                         <a href="/reading-list">Profile</a>

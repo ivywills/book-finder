@@ -139,13 +139,7 @@ const FriendsPage = () => {
                     />
                     <div>
                       <Link href={`/connect/${friend.id}`} legacyBehavior>
-                        <a className="text-blue-500">
-                          {friend.name &&
-                          friend.name !== 'null null' &&
-                          friend.name.length > 1
-                            ? friend.name
-                            : (friend.email?.split('@')[0] ?? '')}
-                        </a>
+                        <a className="text-blue-500">{friend.email}</a>
                       </Link>
                     </div>
                   </div>
