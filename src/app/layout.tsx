@@ -111,10 +111,19 @@ export default function RootLayout({
               </div>
             </SignedIn>
             <SignedOut>
-              <div className="flex justify-end p-4">
-                <SignInButton />
-                <div className="px-2">/</div>
-                <SignUpButton />
+              <div className="navbar bg-base-100 shadow-md sticky top-0 mb-4 z-50">
+                <div className="absolute top-5 left-4 h-5 flex items-center">
+                  <SignInButton>
+                    <div className="btn btn-primary btn-xs mx-1 min-h-0 h-8 px-3 text-sm">
+                      Sign in
+                    </div>
+                  </SignInButton>
+                  <SignUpButton>
+                    <div className="btn btn-secondary btn-xs mx-1 min-h-0 h-8 px-3 text-sm">
+                      Sign up
+                    </div>
+                  </SignUpButton>
+                </div>
               </div>
             </SignedOut>
             {children}
