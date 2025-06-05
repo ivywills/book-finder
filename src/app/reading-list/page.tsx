@@ -449,7 +449,7 @@ const ReadingPage = () => {
   return (
     <div className="max-w-lg mx-auto p-5">
       {/* User Information */}
-      <h1 className="font-bold mb-6 text-center text-2xl">Profile</h1>
+      <h1 className="font-bold mb-6 text-center text-2xl">Book Shelf</h1>
       <label
         htmlFor="prompt"
         className="block mb-4 text-lg text-primary text-center"

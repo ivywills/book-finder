@@ -119,13 +119,17 @@ const FriendsPage = () => {
 
   return (
     <div className="max-w-lg mx-auto p-5">
+      <h1 className="font-bold mb-6 text-center text-2xl">Book Club</h1>
+      <label className="block mb-4 text-lg text-primary text-center">
+        Here, you can add your friends and chat about books—just like your
+        monthly book club!
+      </label>
       {loading ? (
         <div></div>
       ) : (
         <>
           {(friends ?? []).length !== 0 && (
             <>
-              <h1 className="font-bold my-6 text-xl">Friends</h1>
               <ul className="list-none pl-0 space-y-4">
                 {friends.map((friend, index) => (
                   <li
@@ -155,7 +159,7 @@ const FriendsPage = () => {
         </>
       )}
 
-      <h2 className="font-bold my-6 text-xl">Add a New Friend</h2>
+      <h1 className="text-l font-bold mb-6 mt-2">Add a New Friend</h1>
       <div className="flex space-x-2 mb-6">
         <input
           type="text"
@@ -172,22 +176,12 @@ const FriendsPage = () => {
         </button>
       </div>
 
-      <h2 className="font-bold my-4 text-xl">Share your account</h2>
+      <h1 className="text-sm font-bold mt-2">
+        Share this link with your friends to let them see your profile:
+      </h1>
       <button className="btn btn-primary mt-4" onClick={handleGetShareLink}>
         Share my account
       </button>
-
-      {shareLink && (
-        <div className="mt-4">
-          <p>Share this link with your friends:</p>
-          <a href={shareLink} className="text-blue-500">
-            {shareLink}
-          </a>
-          {linkCopied && (
-            <p className="text-green-500 mt-2">Link copied to clipboard!</p>
-          )}
-        </div>
-      )}
     </div>
   );
 };
