@@ -16,8 +16,6 @@ const FriendsPage = () => {
   const { user } = useUser();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
-  const [shareLink, setShareLink] = useState<string | null>(null);
-  const [linkCopied, setLinkCopied] = useState(false);
   const [newFriendEmail, setNewFriendEmail] = useState('');
 
   useEffect(() => {
@@ -55,20 +53,11 @@ const FriendsPage = () => {
   const handleGetShareLink = () => {
     if (user) {
       const link = `${window.location.origin}/connect/${user.id}`;
-      setShareLink(link);
-      navigator
-        .share({
-          title: 'Share my account',
-          text: 'Check out my profile on Book Finder!',
-          url: link,
-        })
-        .then(() => {
-          setLinkCopied(true);
-          setTimeout(() => setLinkCopied(false), 2000);
-        })
-        .catch((error) => {
-          console.error('Error sharing:', error);
-        });
+      navigator.share({
+        title: 'Share my account',
+        text: 'Check out my profile on Book Finder!',
+        url: link,
+      });
     }
   };
 
