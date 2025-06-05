@@ -73,13 +73,14 @@ export default function ChatPage() {
               <div className="text-xs text-gray-500 mt-1 text-center w-full">
                 {message.sender}
               </div>
-              {showTimestamp &&
+              // come back to this section to fix time script location
+              {/* {showTimestamp &&
                 message.timestamp &&
                 !isNaN(new Date(message.timestamp).getTime()) && (
                   <div className="text-xs text-gray-500 mt-1 text-center w-full">
                     {formatTimestamp(message.timestamp)}
                   </div>
-                )}
+                )} */}
             </li>
           );
         })}

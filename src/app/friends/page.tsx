@@ -36,6 +36,8 @@ const FriendsPage = () => {
 
         const friendsWithImages = friendsData.map((friend: Friend) => ({
           ...friend,
+          name: friend.name || friend.email,
+          email: friend.email || '',
           profileImageUrl: friend.profileImageUrl || defaultProfilePic.src,
         }));
 
@@ -117,38 +119,38 @@ const FriendsPage = () => {
 
   return (
     <div className="max-w-lg mx-auto p-5">
-      <h1 className="font-bold my-6 text-xl">Friends</h1>
       {loading ? (
         <div></div>
       ) : (
         <>
-          {(friends ?? []).length === 0 ? (
-            <div>No friends added yet.</div>
-          ) : (
-            <ul className="list-none pl-0 space-y-4">
-              {friends.map((friend, index) => (
-                <li
-                  key={friend.id}
-                  className={`flex items-center justify-between pb-4 ${index !== friends.length - 1 ? 'border-b border-gray-200' : ''}`}
-                >
-                  <div className="flex items-center space-x-4">
-                    <img
-                      src={friend.profileImageUrl || defaultProfilePic.src}
-                      alt={`${friend.name ?? friend.email}'s profile`}
-                      className="w-10 h-10 rounded-full"
-                    />
-                    <div>
-                      <Link href={`/connect/${friend.id}`} legacyBehavior>
-                        <a className="text-blue-500">{friend.email}</a>
-                      </Link>
+          {(friends ?? []).length !== 0 && (
+            <>
+              <h1 className="font-bold my-6 text-xl">Friends</h1>
+              <ul className="list-none pl-0 space-y-4">
+                {friends.map((friend, index) => (
+                  <li
+                    key={friend.id}
+                    className={`flex items-center justify-between pb-4 ${index !== friends.length - 1 ? 'border-b border-gray-200' : ''}`}
+                  >
+                    <div className="flex items-center space-x-4">
+                      <img
+                        src={friend.profileImageUrl || defaultProfilePic.src}
+                        alt={`${friend.name ?? friend.email}'s profile`}
+                        className="w-10 h-10 rounded-full"
+                      />
+                      <div>
+                        <Link href={`/connect/${friend.id}`} legacyBehavior>
+                          <a className="text-blue-500">{friend.email}</a>
+                        </Link>
+                      </div>
                     </div>
-                  </div>
-                  <Link href={`/connect/${friend.id}/chat`} legacyBehavior>
-                    <a className="btn btn-sm btn-primary">Chat</a>
-                  </Link>
-                </li>
-              ))}
-            </ul>
+                    <Link href={`/connect/${friend.id}/chat`} legacyBehavior>
+                      <a className="btn btn-sm btn-primary">Chat</a>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </>
       )}
