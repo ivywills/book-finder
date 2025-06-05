@@ -42,9 +42,7 @@ export default function ChatPage() {
   return (
     <main className="p-4 flex flex-col h-[calc(100vh-72px)]">
       <ul className="space-y-4 flex-1 overflow-y-auto flex flex-col-reverse">
-        {messages.map((message, index) => {
-          const previousMessage = messages[index + 1];
-
+        {messages.map((message) => {
           return (
             <li
               key={message._id}
