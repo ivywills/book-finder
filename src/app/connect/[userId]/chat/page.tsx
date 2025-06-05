@@ -39,26 +39,11 @@ export default function ChatPage() {
     return <div></div>;
   }
 
-  const formatTimestamp = (timestamp: string) => {
-    const date = new Date(timestamp);
-    const now = new Date();
-    if (date.toDateString() === now.toDateString()) {
-      return date.toLocaleTimeString();
-    } else {
-      return date.toLocaleDateString();
-    }
-  };
-
   return (
     <main className="p-4 flex flex-col h-[calc(100vh-72px)]">
       <ul className="space-y-4 flex-1 overflow-y-auto flex flex-col-reverse">
         {messages.map((message, index) => {
           const previousMessage = messages[index + 1];
-          const showTimestamp =
-            !previousMessage ||
-            new Date(message.timestamp).getTime() -
-              new Date(previousMessage.timestamp).getTime() >
-              5 * 60 * 1000;
 
           return (
             <li
@@ -73,14 +58,6 @@ export default function ChatPage() {
               <div className="text-xs text-gray-500 mt-1 text-center w-full">
                 {message.sender}
               </div>
-              // come back to this section to fix time script location
-              {/* {showTimestamp &&
-                message.timestamp &&
-                !isNaN(new Date(message.timestamp).getTime()) && (
-                  <div className="text-xs text-gray-500 mt-1 text-center w-full">
-                    {formatTimestamp(message.timestamp)}
-                  </div>
-                )} */}
             </li>
           );
         })}
