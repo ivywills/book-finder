@@ -360,11 +360,17 @@ const HomePage = () => {
                       e.currentTarget.src = defaultCover.src;
                     }}
                   />
-                  <Link href={`/prompts/${encodeURIComponent(book.name)}`}>
-                    <div className="mt-2">
-                      <strong className="block truncate">{book.name}</strong>
-                      <p className="block truncate">{book.author}</p>
-                    </div>
+                  <Link
+                    href={`/prompts/${encodeURIComponent(book.name)}`}
+                    passHref
+                    legacyBehavior
+                  >
+                    <a target="_blank" rel="noopener noreferrer">
+                      <div className="mt-2">
+                        <strong className="block truncate">{book.name}</strong>
+                        <p className="block truncate">{book.author}</p>
+                      </div>
+                    </a>
                   </Link>
                   <SignedIn>
                     <button
@@ -464,50 +470,60 @@ const HomePage = () => {
         <ul className="pl-5">
           {paginatedBooks.map((book) => (
             <li key={book.isbn} className="mb-4">
-              <div className="flex items-center">
-                <img
-                  src={
-                    typeof book.image === 'string'
-                      ? book.image
-                      : defaultCover.src
-                  }
-                  alt={`${book.name} cover`}
-                  className="w-16 h-24 object-cover mr-4 rounded-md shadow-sm"
-                  onError={(e) => {
-                    e.currentTarget.src = defaultCover.src;
-                  }}
-                />
-                <div>
-                  <Link href={`/prompts/${encodeURIComponent(book.name)}`}>
-                    <strong className="block truncate text-lg text-gray-800">
-                      {book.name}
-                    </strong>
-                  </Link>
-                  <p className="block truncate text-sm text-gray-600">
-                    {book.author}
-                  </p>
-                  {book.averageRating !== null && (
-                    <div className="flex items-center mt-1">
-                      {renderStars(book.averageRating)}
-                      <span className="ml-2 text-xs text-gray-500">
-                        {book.ratingsCount ? `(${book.ratingsCount})` : ''}
-                      </span>
-                    </div>
-                  )}
-                  <button
-                    onClick={() => addToFavorites(book)}
-                    className="text-2xl px-2 mt-2"
-                    title="Add to Favorites"
-                  >
-                    <FontAwesomeIcon
-                      icon={isFavorite(book) ? solidHeart : regularHeart}
-                      className={
-                        isFavorite(book) ? 'text-red-500' : 'text-gray-400'
+              <Link
+                href={`/prompts/${encodeURIComponent(book.name)}`}
+                passHref
+                legacyBehavior
+              >
+                <a target="_blank" rel="noopener noreferrer">
+                  <div className="flex items-center">
+                    <img
+                      src={
+                        typeof book.image === 'string'
+                          ? book.image
+                          : defaultCover.src
                       }
+                      alt={`${book.name} cover`}
+                      className="w-16 h-24 object-cover mr-4 rounded-md shadow-sm"
+                      onError={(e) => {
+                        e.currentTarget.src = defaultCover.src;
+                      }}
                     />
-                  </button>
-                </div>
-              </div>
+                    <div>
+                      <strong className="block truncate text-lg text-gray-800">
+                        {book.name}
+                      </strong>
+                      <p className="block truncate text-sm text-gray-600">
+                        {book.author}
+                      </p>
+                      {book.averageRating !== null && (
+                        <div className="flex items-center mt-1">
+                          {renderStars(book.averageRating)}
+                          <span className="ml-2 text-xs text-gray-500">
+                            {book.ratingsCount ? `(${book.ratingsCount})` : ''}
+                          </span>
+                        </div>
+                      )}
+                      <button
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          e.preventDefault();
+                          addToFavorites(book);
+                        }}
+                        className="text-2xl px-2 mt-2"
+                        title="Add to Favorites"
+                      >
+                        <FontAwesomeIcon
+                          icon={isFavorite(book) ? solidHeart : regularHeart}
+                          className={
+                            isFavorite(book) ? 'text-red-500' : 'text-gray-400'
+                          }
+                        />
+                      </button>
+                    </div>
+                  </div>
+                </a>
+              </Link>
             </li>
           ))}
         </ul>
