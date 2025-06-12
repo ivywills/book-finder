@@ -24,6 +24,7 @@ interface WebhookEvent {
       image_url?: string; 
     };
     imageUrl?: string; 
+    email?: string;
   };
 }
 
@@ -33,6 +34,47 @@ export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
   const userId = searchParams.get('userId');
   const email = searchParams.get('email');
+  const search = searchParams.get('search');
+
+  // --- Search MongoDB for users by email or name, no userId required ---
+  if (search !== null) {
+    try {
+      await client.connect();
+      const db = client.db('bookfinder');
+      const usersCollection = db.collection('users');
+      let query: any = {};
+      if (search && search.trim().length > 0) {
+        const regex = new RegExp(search, 'i');
+        query = {
+          $or: [
+            { firstName: regex },
+            { lastName: regex },
+            { email: regex }
+          ]
+        };
+      }
+      // Only return users with an email
+      const mongoUsers = await usersCollection
+        .find({ ...query, email: { $exists: true, $ne: '' } })
+        .limit(10)
+        .toArray();
+
+      const users = mongoUsers.map(u => ({
+        id: u.id,
+        email: u.email,
+        firstName: u.firstName,
+        lastName: u.lastName,
+        imageUrl: u.imageUrl || '',
+      }));
+
+      return NextResponse.json({ users }, { status: 200 });
+    } catch (error) {
+      console.error('Error searching users:', error);
+      return NextResponse.json({ users: [] }, { status: 200 });
+    } finally {
+      await client.close();
+    }
+  }
 
   if (email) {
     return getUserIdByEmail(email);

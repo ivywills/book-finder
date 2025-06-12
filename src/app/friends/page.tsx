@@ -12,18 +12,26 @@ interface Friend {
   profileImageUrl?: string;
 }
 
+interface UserSearchResult {
+  id: string;
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  imageUrl?: string;
+}
+
 const FriendsPage = () => {
   const { user } = useUser();
   const [friends, setFriends] = useState<Friend[]>([]);
   const [loading, setLoading] = useState(true);
-  const [newFriendEmail, setNewFriendEmail] = useState('');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
+  const [searching, setSearching] = useState(false);
 
   useEffect(() => {
     const fetchFriends = async () => {
       if (!user) return;
-
       setLoading(true);
-
       try {
         const response = await fetch(`/api/clerk?userId=${user.id}`);
         if (!response.ok) {
@@ -31,14 +39,12 @@ const FriendsPage = () => {
         }
         const data = await response.json();
         const friendsData = data.userProfile.friends ?? [];
-
         const friendsWithImages = friendsData.map((friend: Friend) => ({
           ...friend,
           name: friend.name || friend.email,
           email: friend.email || '',
           profileImageUrl: friend.profileImageUrl || defaultProfilePic.src,
         }));
-
         setFriends(friendsWithImages);
       } catch (err) {
         console.error('Error fetching friends:', err);
@@ -46,64 +52,84 @@ const FriendsPage = () => {
         setLoading(false);
       }
     };
-
     fetchFriends();
   }, [user]);
 
-  const handleGetShareLink = () => {
-    if (user) {
-      const link = `${window.location.origin}/connect/${user.id}`;
-      navigator.share({
-        title: 'Share my account',
-        text: 'Check out my profile on Book Finder!',
-        url: link,
-      });
+  const fetchSuggestedUsers = async () => {
+    setSearching(true);
+    try {
+      const res = await fetch('/api/clerk?search=');
+      if (!res.ok) return;
+      const { users } = await res.json();
+      const friendIds = new Set(friends.map((f) => f.id));
+      setSearchResults(
+        (users ?? []).filter(
+          (u: UserSearchResult) => u.id !== user?.id && !friendIds.has(u.id)
+        )
+      );
+    } catch {
+      setSearchResults([]);
+    } finally {
+      setSearching(false);
     }
   };
 
-  const handleAddFriend = async (friendEmail: string) => {
+  const handleSearch = async (query: string) => {
+    setSearchQuery(query);
+    if (!query || query.length < 2) {
+      fetchSuggestedUsers();
+      return;
+    }
+    setSearching(true);
+    try {
+      const res = await fetch(`/api/clerk?search=${encodeURIComponent(query)}`);
+      if (!res.ok) throw new Error('Failed to search users');
+      const { users } = await res.json();
+      const friendIds = new Set(friends.map((f) => f.id));
+      setSearchResults(
+        (users ?? []).filter(
+          (u: UserSearchResult) => u.id !== user?.id && !friendIds.has(u.id)
+        )
+      );
+    } catch (err) {
+      setSearchResults([]);
+    } finally {
+      setSearching(false);
+    }
+  };
+
+  const handleInputFocus = () => {
+    if (!searchQuery) {
+      fetchSuggestedUsers();
+    }
+  };
+
+  const handleAddFriendFromSearch = async (friend: UserSearchResult) => {
     if (!user) return;
 
-    try {
-      const userIdResponse = await fetch(`/api/clerk?email=${friendEmail}`);
-      if (!userIdResponse.ok) {
-        throw new Error('Failed to fetch user ID');
-      }
-      const { userId: friendId } = await userIdResponse.json();
-
-      const profileResponse = await fetch(`/api/clerk?userId=${friendId}`);
-      if (!profileResponse.ok) {
-        throw new Error('Failed to fetch friend profile');
-      }
-      const profileData = await profileResponse.json();
-      const profileImageUrl = profileData.imageUrl || defaultProfilePic.src;
-
-      const response = await fetch('/api/clerk', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
+    const response = await fetch('/api/clerk', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        type: 'add.friend',
+        data: {
+          userId: user.id,
+          friendId: friend.id,
+          friendName: friend.firstName || '', // optional
         },
-        body: JSON.stringify({
-          type: 'add.friend',
-          data: {
-            userId: user.id,
-            friendId,
-          },
-        }),
-      });
-
-      if (!response.ok) {
-        throw new Error('Failed to add friend');
-      }
-
-      setFriends([
-        ...friends,
-        { id: friendId, email: friendEmail, profileImageUrl },
-      ]);
-      setNewFriendEmail('');
-    } catch (err) {
-      console.error('Error adding friend:', err);
-    }
+      }),
+    });
+    if (!response.ok) throw new Error('Failed to add friend');
+    setFriends([
+      ...friends,
+      {
+        id: friend.id,
+        email: friend.email,
+        name: friend.firstName,
+        profileImageUrl: friend.imageUrl || defaultProfilePic.src,
+      },
+    ]);
+    setSearchResults(searchResults.filter((u) => u.id !== friend.id));
   };
 
   return (
@@ -113,6 +139,60 @@ const FriendsPage = () => {
         Here, you can add your friends and chat about books—just like your
         monthly book club!
       </label>
+      <h1 className="text-l font-bold mb-2 mt-2">Add a New Friend</h1>
+      <div className="flex flex-col space-y-2 mb-6 relative">
+        <div className="relative">
+          <input
+            type="text"
+            placeholder="Search by email or name"
+            className="input input-bordered w-full"
+            value={searchQuery}
+            onChange={(e) => handleSearch(e.target.value)}
+            onFocus={handleInputFocus}
+            autoComplete="off"
+            style={{ position: 'relative', zIndex: 20 }}
+          />
+          {/* Dropdown for search results */}
+          {searching && (
+            <div className="text-sm text-gray-500">Searching...</div>
+          )}
+          {searchResults.length > 0 && (
+            <ul
+              className="absolute z-10 bg-white border border-gray-200 rounded w-full left-0 mt-1 shadow-md list-none pl-0 space-y-2"
+              style={{ top: '100%', zIndex: 30 }}
+            >
+              {searchResults.map((user) => (
+                <li
+                  key={user.id}
+                  className="flex items-center justify-between px-3 py-2 hover:bg-gray-100 cursor-pointer"
+                >
+                  <div className="flex items-center space-x-3">
+                    <img
+                      src={user.imageUrl || defaultProfilePic.src}
+                      alt={user.email ?? ''}
+                      className="w-8 h-8 rounded-full"
+                    />
+                    <span>{user.email}</span>
+                    {user.firstName && (
+                      <span className="ml-2 text-gray-500">
+                        {user.firstName} {user.lastName}
+                      </span>
+                    )}
+                  </div>
+                  <button
+                    className="btn btn-xs btn-primary"
+                    onClick={() => handleAddFriendFromSearch(user)}
+                  >
+                    Add
+                  </button>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </div>
+      {/* Subheader before current friends */}
+      <h2 className="font-bold text-lg mb-2 mt-6">Your Friends</h2>
       {loading ? (
         <div></div>
       ) : (
@@ -147,30 +227,6 @@ const FriendsPage = () => {
           )}
         </>
       )}
-
-      <h1 className="text-l font-bold mb-6 mt-2">Add a New Friend</h1>
-      <div className="flex space-x-2 mb-6">
-        <input
-          type="text"
-          placeholder="Friend Email"
-          className="input input-bordered w-full"
-          value={newFriendEmail}
-          onChange={(e) => setNewFriendEmail(e.target.value)}
-        />
-        <button
-          className="btn btn-primary"
-          onClick={() => handleAddFriend(newFriendEmail)}
-        >
-          Add Friend
-        </button>
-      </div>
-
-      <h1 className="text-sm font-bold mt-2">
-        Share this link with your friends to let them see your profile:
-      </h1>
-      <button className="btn btn-primary mt-4" onClick={handleGetShareLink}>
-        Share my account
-      </button>
     </div>
   );
 };
