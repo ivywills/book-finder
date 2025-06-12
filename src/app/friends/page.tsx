@@ -27,6 +27,7 @@ const FriendsPage = () => {
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
+  const [showDropdown, setShowDropdown] = useState(false);
 
   useEffect(() => {
     const fetchFriends = async () => {
@@ -58,6 +59,7 @@ const FriendsPage = () => {
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
     setSearching(true);
+    setShowDropdown(true);
     try {
       let users: UserSearchResult[] = [];
       if (!query || query.trim().length < 2) {
@@ -92,6 +94,7 @@ const FriendsPage = () => {
     if (!searchQuery) {
       handleSearch('');
     }
+    setShowDropdown(true);
   };
 
   const handleAddFriendFromSearch = async (friend: UserSearchResult) => {
@@ -120,6 +123,8 @@ const FriendsPage = () => {
       },
     ]);
     setSearchResults(searchResults.filter((u) => u.id !== friend.id));
+    setShowDropdown(false);
+    setSearchQuery('');
   };
 
   return (
@@ -145,7 +150,7 @@ const FriendsPage = () => {
           {searching && (
             <div className="text-sm text-gray-500">Searching...</div>
           )}
-          {searchResults.length > 0 && (
+          {showDropdown && searchResults.length > 0 && (
             <ul
               className="absolute z-10 bg-white border border-gray-200 rounded w-full left-0 mt-1 shadow-md list-none pl-0 space-y-2"
               style={{ top: '100%', zIndex: 30 }}
