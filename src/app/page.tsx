@@ -509,11 +509,11 @@ const HomePage = () => {
                         e.currentTarget.src = defaultCover.src;
                       }}
                     />
-                    <div>
-                      <strong className="block truncate text-lg text-gray-800">
+                    <div className="min-w-0 w-full max-w-[calc(100vw-7rem)]">
+                      <strong className="block text-lg text-gray-800 break-words whitespace-normal leading-snug">
                         {book.name}
                       </strong>
-                      <p className="block truncate text-sm text-gray-600">
+                      <p className="block text-sm text-gray-600 break-words whitespace-normal leading-snug">
                         {book.author}
                       </p>
                       {book.averageRating !== null && (
