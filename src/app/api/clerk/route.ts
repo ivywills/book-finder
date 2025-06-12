@@ -190,6 +190,15 @@ export async function POST(req: NextRequest) {
       { id: userId },
       { $set: { imageUrl } }
     );
+  } else if (payload.type === 'update.email') {
+    const { userId, email } = payload.data;
+    if (userId && email) {
+      await usersCollection.updateOne(
+        { id: userId },
+        { $set: { email } }
+      );
+    }
+    return NextResponse.json({ message: 'Email updated' }, { status: 200 });
   }
   return NextResponse.json({ message: 'Received' }, { status: 200 });
 }

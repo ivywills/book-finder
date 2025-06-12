@@ -65,6 +65,26 @@ const HomePage = () => {
     const fetchFavorites = async () => {
       if (!user) return;
 
+      const userId = user.id;
+      const mongoRes = await fetch(`/api/user-profile?userId=${userId}`);
+      const mongoData = await mongoRes.json();
+      if (
+        !mongoData.userProfile?.email ||
+        mongoData.userProfile.email !== user.primaryEmailAddress?.emailAddress
+      ) {
+        await fetch('/api/clerk', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type: 'update.email',
+            data: {
+              userId,
+              email: user.primaryEmailAddress?.emailAddress,
+            },
+          }),
+        });
+      }
+
       setLoadingFavorites(true);
       try {
         const userId = user.id;
