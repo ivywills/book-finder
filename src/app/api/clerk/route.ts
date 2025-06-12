@@ -53,7 +53,6 @@ export async function GET(req: NextRequest) {
           ]
         };
       }
-      // Only return users with an email
       const mongoUsers = await usersCollection
         .find({ ...query, email: { $exists: true, $ne: '' } })
         .limit(10)
@@ -74,6 +73,7 @@ export async function GET(req: NextRequest) {
     } finally {
       await client.close();
     }
+    return;
   }
 
   if (email) {

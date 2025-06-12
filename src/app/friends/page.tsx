@@ -55,39 +55,29 @@ const FriendsPage = () => {
     fetchFriends();
   }, [user]);
 
-  const fetchSuggestedUsers = async () => {
-    setSearching(true);
-    try {
-      const res = await fetch('/api/clerk?search=');
-      if (!res.ok) return;
-      const { users } = await res.json();
-      const friendIds = new Set(friends.map((f) => f.id));
-      setSearchResults(
-        (users ?? []).filter(
-          (u: UserSearchResult) => u.id !== user?.id && !friendIds.has(u.id)
-        )
-      );
-    } catch {
-      setSearchResults([]);
-    } finally {
-      setSearching(false);
-    }
-  };
-
   const handleSearch = async (query: string) => {
     setSearchQuery(query);
-    if (!query || query.length < 2) {
-      fetchSuggestedUsers();
-      return;
-    }
     setSearching(true);
     try {
-      const res = await fetch(`/api/clerk?search=${encodeURIComponent(query)}`);
-      if (!res.ok) throw new Error('Failed to search users');
-      const { users } = await res.json();
+      let users: UserSearchResult[] = [];
+      if (!query || query.trim().length < 2) {
+        const res = await fetch('/api/user-profile-all');
+        if (res.ok) {
+          const data = await res.json();
+          users = data.users ?? [];
+        }
+      } else {
+        const res = await fetch(
+          `/api/clerk?search=${encodeURIComponent(query)}`
+        );
+        if (res.ok) {
+          const data = await res.json();
+          users = data.users ?? [];
+        }
+      }
       const friendIds = new Set(friends.map((f) => f.id));
       setSearchResults(
-        (users ?? []).filter(
+        users.filter(
           (u: UserSearchResult) => u.id !== user?.id && !friendIds.has(u.id)
         )
       );
@@ -100,7 +90,7 @@ const FriendsPage = () => {
 
   const handleInputFocus = () => {
     if (!searchQuery) {
-      fetchSuggestedUsers();
+      handleSearch('');
     }
   };
 
@@ -152,7 +142,6 @@ const FriendsPage = () => {
             autoComplete="off"
             style={{ position: 'relative', zIndex: 20 }}
           />
-          {/* Dropdown for search results */}
           {searching && (
             <div className="text-sm text-gray-500">Searching...</div>
           )}
@@ -191,7 +180,6 @@ const FriendsPage = () => {
           )}
         </div>
       </div>
-      {/* Subheader before current friends */}
       <h2 className="font-bold text-lg mb-2 mt-6">Your Friends</h2>
       {loading ? (
         <div></div>
