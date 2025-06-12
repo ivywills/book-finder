@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { MongoClient } from 'mongodb';
 
 const client = new MongoClient(process.env.MONGODB_URI!);
 
-export async function GET(req: NextRequest) {
+export async function GET() {
   try {
     await client.connect();
     const db = client.db('bookfinder');
