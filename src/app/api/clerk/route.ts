@@ -36,12 +36,12 @@ export async function GET(req: NextRequest) {
   const email = searchParams.get('email');
   const search = searchParams.get('search');
 
-  // --- Search MongoDB for users by email or name, no userId required ---
   if (search !== null) {
     try {
       await client.connect();
       const db = client.db('bookfinder');
       const usersCollection = db.collection('users');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       let query: any = {};
       if (search && search.trim().length > 0) {
         const regex = new RegExp(search, 'i');
