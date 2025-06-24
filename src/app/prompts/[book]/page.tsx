@@ -265,84 +265,112 @@ const BookPage = () => {
 
   return (
     <div className="max-w-lg mx-auto p-5">
-      <h1 className="text-3xl font-bold mb-6">{book.name}</h1>
-      <img
-        src={book.image || defaultCover.src}
-        alt={`${book.name} cover`}
-        className="w-full h-full object-cover mb-4"
-      />
-      <p>
-        <strong>Author:</strong> {book.author}
-      </p>
-      <p>
-        <strong>ISBN:</strong> {book.isbn}
-      </p>
-      {book.description && (
-        <p>
-          <strong>Description:</strong>{' '}
-          {showFullDescription
-            ? book.description
-            : getShortDescription(book.description)}
-          {!showFullDescription && book.description.split('. ').length > 2 && (
-            <span
-              className="text-blue-500 cursor-pointer"
-              onClick={() => setShowFullDescription(true)}
-            >
-              Read more
-            </span>
-          )}
-          {showFullDescription && (
-            <span
-              className="text-blue-500 cursor-pointer"
-              onClick={() => setShowFullDescription(false)}
-            >
-              {' '}
-              Read less
-            </span>
-          )}
-        </p>
-      )}
-      {book.publisher && (
-        <p>
-          <strong>Publisher:</strong> {book.publisher}
-        </p>
-      )}
-      {book.publishedDate && (
-        <p>
-          <strong>Published Date:</strong> {book.publishedDate}
-        </p>
-      )}
-      {book.pageCount && (
-        <p>
-          <strong>Page Count:</strong> {book.pageCount}
-        </p>
-      )}
-      {book.categories && (
-        <p>
-          <strong>Categories:</strong> {book.categories.join(', ')}
-        </p>
-      )}
-      <button
-        className="btn btn-primary mt-4 hover:bg-blue-600 transition-colors duration-300"
-        onClick={handleShare}
-      >
-        Share this book
-      </button>
-      {linkCopied && (
-        <p className="text-green-500 mt-2 animate-pulse">
-          Link copied to clipboard!
-        </p>
-      )}
-      {loadingSuggestions ? (
-        <div className="flex justify-center items-center mt-12"></div>
-      ) : (
-        suggestedBooks.length > 0 && (
-          <div className="mt-8">
-            <h2 className="text-xl font-bold mb-4">Books Like This</h2>
-            {renderCarousel(suggestedBooks, 'suggested-slide')}
+      {/* Book Main Info Section */}
+      <section className="mb-6">
+        <div className="border rounded-lg shadow bg-white flex flex-row gap-6 p-4 items-center">
+          <div className="flex-1 flex flex-col justify-center min-w-0">
+            <h1 className="text-2xl font-bold mb-2 break-words">{book.name}</h1>
+            <p className="mb-1">
+              <strong>Author:</strong> {book.author}
+            </p>
+            <p className="mb-1">
+              <strong>ISBN:</strong> {book.isbn}
+            </p>
+            {book.publisher && (
+              <p className="mb-1">
+                <strong>Publisher:</strong> {book.publisher}
+              </p>
+            )}
+            {book.publishedDate && (
+              <p className="mb-1">
+                <strong>Published Date:</strong> {book.publishedDate}
+              </p>
+            )}
+            {book.pageCount && (
+              <p className="mb-1">
+                <strong>Page Count:</strong> {book.pageCount}
+              </p>
+            )}
+            {book.categories && (
+              <p className="mb-1">
+                <strong>Categories:</strong> {book.categories.join(', ')}
+              </p>
+            )}
           </div>
-        )
+          <div className="flex-shrink-0 flex justify-center items-center">
+            <img
+              src={book.image || defaultCover.src}
+              alt={`${book.name} cover`}
+              className="w-32 h-48 object-cover rounded-lg shadow-md"
+            />
+          </div>
+        </div>
+      </section>
+
+      <hr className="my-6" />
+
+      {/* Description Section */}
+      {book.description && (
+        <section className="mb-4">
+          <h2 className="font-semibold mb-1">Description:</h2>
+          <span>
+            {showFullDescription
+              ? book.description
+              : getShortDescription(book.description)}
+            {!showFullDescription &&
+              book.description.split('. ').length > 2 && (
+                <span
+                  className="text-blue-500 cursor-pointer"
+                  onClick={() => setShowFullDescription(true)}
+                >
+                  Read more
+                </span>
+              )}
+            {showFullDescription && (
+              <span
+                className="text-blue-500 cursor-pointer"
+                onClick={() => setShowFullDescription(false)}
+              >
+                {' '}
+                Read less
+              </span>
+            )}
+          </span>
+        </section>
       )}
+
+      <hr className="my-6" />
+
+      {/* Share Section */}
+      <section className="mb-4">
+        <button
+          className="btn btn-primary mt-2 hover:bg-blue-600 transition-colors duration-300"
+          onClick={handleShare}
+        >
+          Share this book
+        </button>
+        {linkCopied && (
+          <p className="text-green-500 mt-2 animate-pulse">
+            Link copied to clipboard!
+          </p>
+        )}
+      </section>
+
+      <hr className="my-6" />
+
+      {/* Suggestions Section */}
+      <section>
+        {loadingSuggestions ? (
+          <div className="flex justify-center items-center mt-12"></div>
+        ) : (
+          suggestedBooks.length > 0 && (
+            <div className="mt-8">
+              <h2 className="text-xl font-bold mb-4">Books Like This</h2>
+              {renderCarousel(suggestedBooks, 'suggested-slide')}
+            </div>
+          )
+        )}
+      </section>
     </div>
   );
 };
