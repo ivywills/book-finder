@@ -2,15 +2,59 @@
 @tailwind components;
 @tailwind utilities;
 
+:root {
+  --landing-dot-color: rgba(99, 102, 241, 0.08);
+}
+
 @layer base {
   body {
     @apply bg-base-100 text-base-content font-sans;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(circle at top left, rgba(251, 191, 36, 0.16), transparent 24%),
+      radial-gradient(circle at top right, rgba(125, 211, 252, 0.18), transparent 28%),
+      radial-gradient(circle at bottom center, rgba(251, 113, 133, 0.12), transparent 22%);
+    background-attachment: fixed;
   }
 }
 
 @layer utilities {
   .text-balance {
     text-wrap: balance;
+  }
+
+  .hide-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+
+  .hide-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+
+  .landing-dots {
+    background-image: radial-gradient(
+      circle at 1px 1px,
+      var(--landing-dot-color) 1.2px,
+      transparent 0
+    );
+    background-size: 28px 28px;
+    mask-image: linear-gradient(to bottom, rgba(0, 0, 0, 0.45), transparent 80%);
+  }
+
+  .float-slow {
+    animation: float-slow 8s ease-in-out infinite;
+  }
+}
+
+@keyframes float-slow {
+  0%,
+  100% {
+    transform: translateY(0px);
+  }
+
+  50% {
+    transform: translateY(-10px);
   }
 }
 

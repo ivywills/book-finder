@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useUser } from '@clerk/nextjs';
 import Link from 'next/link';
 import defaultProfilePic from './profile-pic.png';
@@ -28,6 +28,9 @@ const FriendsPage = () => {
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
   const [searching, setSearching] = useState(false);
   const [showDropdown, setShowDropdown] = useState(false);
+  const allUsersCacheRef = useRef<UserSearchResult[] | null>(null);
+  const searchDebounceRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const searchRequestIdRef = useRef(0);
 
   useEffect(() => {
     const fetchFriends = async () => {
@@ -56,44 +59,76 @@ const FriendsPage = () => {
     fetchFriends();
   }, [user]);
 
-  const handleSearch = async (query: string) => {
-    setSearchQuery(query);
-    setSearching(true);
-    setShowDropdown(true);
-    try {
-      let users: UserSearchResult[] = [];
-      if (!query || query.trim().length < 2) {
-        const res = await fetch('/api/user-profile-all');
-        if (res.ok) {
-          const data = await res.json();
-          users = data.users ?? [];
+  useEffect(() => {
+    if (!showDropdown) return;
+
+    if (searchDebounceRef.current) {
+      clearTimeout(searchDebounceRef.current);
+    }
+
+    searchDebounceRef.current = setTimeout(async () => {
+      const requestId = ++searchRequestIdRef.current;
+      setSearching(true);
+
+      try {
+        const trimmedQuery = searchQuery.trim();
+        let users: UserSearchResult[] = [];
+
+        if (trimmedQuery.length < 2) {
+          if (allUsersCacheRef.current) {
+            users = allUsersCacheRef.current;
+          } else {
+            const res = await fetch('/api/user-profile-all');
+            if (res.ok) {
+              const data = await res.json();
+              users = data.users ?? [];
+              allUsersCacheRef.current = users;
+            }
+          }
+        } else {
+          const res = await fetch(
+            `/api/clerk?search=${encodeURIComponent(trimmedQuery)}`
+          );
+          if (res.ok) {
+            const data = await res.json();
+            users = data.users ?? [];
+          }
         }
-      } else {
-        const res = await fetch(
-          `/api/clerk?search=${encodeURIComponent(query)}`
+
+        if (requestId !== searchRequestIdRef.current) {
+          return;
+        }
+
+        const friendIds = new Set(friends.map((f) => f.id));
+        setSearchResults(
+          users.filter(
+            (u: UserSearchResult) => u.id !== user?.id && !friendIds.has(u.id)
+          )
         );
-        if (res.ok) {
-          const data = await res.json();
-          users = data.users ?? [];
+      } catch (err) {
+        if (requestId === searchRequestIdRef.current) {
+          setSearchResults([]);
+        }
+      } finally {
+        if (requestId === searchRequestIdRef.current) {
+          setSearching(false);
         }
       }
-      const friendIds = new Set(friends.map((f) => f.id));
-      setSearchResults(
-        users.filter(
-          (u: UserSearchResult) => u.id !== user?.id && !friendIds.has(u.id)
-        )
-      );
-    } catch (err) {
-      setSearchResults([]);
-    } finally {
-      setSearching(false);
-    }
+    }, 250);
+
+    return () => {
+      if (searchDebounceRef.current) {
+        clearTimeout(searchDebounceRef.current);
+      }
+    };
+  }, [friends, searchQuery, showDropdown, user]);
+
+  const handleSearchInput = (query: string) => {
+    setSearchQuery(query);
+    setShowDropdown(true);
   };
 
   const handleInputFocus = () => {
-    if (!searchQuery) {
-      handleSearch('');
-    }
     setShowDropdown(true);
   };
 
@@ -142,7 +177,7 @@ const FriendsPage = () => {
             placeholder="Search by email or name"
             className="input input-bordered w-full"
             value={searchQuery}
-            onChange={(e) => handleSearch(e.target.value)}
+            onChange={(e) => handleSearchInput(e.target.value)}
             onFocus={handleInputFocus}
             autoComplete="off"
             style={{ position: 'relative', zIndex: 20 }}

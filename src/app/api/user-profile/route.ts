@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { MongoClient } from 'mongodb';
-
-const client = new MongoClient(process.env.MONGODB_URI!);
+import connectToDatabase from '../../../../db';
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -12,11 +10,22 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    await client.connect();
-    const db = client.db('bookfinder');
+    const db = await connectToDatabase();
     const usersCollection = db.collection('users');
 
-    const user = await usersCollection.findOne({ id: userId });
+    const user = await usersCollection.findOne(
+      { id: userId },
+      {
+        projection: {
+          _id: 0,
+          id: 1,
+          firstName: 1,
+          lastName: 1,
+          email: 1,
+          friends: 1,
+        },
+      }
+    );
 
     if (!user) {
       return NextResponse.json({ error: 'User not found' }, { status: 404 });

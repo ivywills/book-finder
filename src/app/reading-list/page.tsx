@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useUser } from '@clerk/nextjs';
 import { useClerk } from '@clerk/clerk-react';
 import Image from 'next/image';
@@ -35,6 +35,9 @@ const ReadingPage = () => {
   const [currentSlide, setCurrentSlide] = useState(0);
   const [profileImage, setProfileImage] = useState<string | null>(null);
   const [editMode, setEditMode] = useState(false);
+  const progressSaveTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(
+    null
+  );
 
   useEffect(() => {
     const fetchBooks = async () => {
@@ -68,6 +71,14 @@ const ReadingPage = () => {
 
     fetchBooks();
   }, [user]);
+
+  useEffect(() => {
+    return () => {
+      if (progressSaveTimeoutRef.current) {
+        clearTimeout(progressSaveTimeoutRef.current);
+      }
+    };
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -223,28 +234,34 @@ const ReadingPage = () => {
     setPagesRead(newPagesRead);
 
     if (user && confirmedBook) {
-      try {
-        const response = await fetch('/api/clerk', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            type: 'update.readingProgress',
-            data: {
-              userId: user.id,
-              book: confirmedBook.title,
-              progress: newPagesRead,
-            },
-          }),
-        });
-
-        if (!response.ok) {
-          throw new Error('Failed to update reading progress');
-        }
-      } catch (err) {
-        console.error('Error updating reading progress:', err);
+      if (progressSaveTimeoutRef.current) {
+        clearTimeout(progressSaveTimeoutRef.current);
       }
+
+      progressSaveTimeoutRef.current = setTimeout(async () => {
+        try {
+          const response = await fetch('/api/clerk', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              type: 'update.readingProgress',
+              data: {
+                userId: user.id,
+                book: confirmedBook.title,
+                progress: newPagesRead,
+              },
+            }),
+          });
+
+          if (!response.ok) {
+            throw new Error('Failed to update reading progress');
+          }
+        } catch (err) {
+          console.error('Error updating reading progress:', err);
+        }
+      }, 500);
     }
   };
 

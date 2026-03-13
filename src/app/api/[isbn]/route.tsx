@@ -13,6 +13,9 @@ interface Book {
 }
 
 export async function GET(req: NextRequest) {
+  const googleBooksApiKey =
+    process.env.GOOGLE_BOOKS_API_KEY ||
+    process.env.NEXT_PUBLIC_GOOGLE_BOOKS_API_KEY;
   const { searchParams } = new URL(req.url);
   const title = searchParams.get('title');
 
@@ -21,7 +24,7 @@ export async function GET(req: NextRequest) {
     return NextResponse.json({ error: 'Invalid title' }, { status: 400 });
   }
 
-  if (!process.env.GOOGLE_BOOKS_API_KEY) {
+  if (!googleBooksApiKey) {
     console.error('Google Books API Key is not set');
     return NextResponse.json(
       { error: 'Google Books API Key is not set' },
@@ -31,7 +34,7 @@ export async function GET(req: NextRequest) {
 
   try {
     const response = await fetch(
-      `https://www.googleapis.com/books/v1/volumes?q=intitle:${title}&key=${process.env.GOOGLE_BOOKS_API_KEY}`
+      `https://www.googleapis.com/books/v1/volumes?q=intitle:${encodeURIComponent(title)}&key=${googleBooksApiKey}`
     );
     if (!response.ok) {
       console.error('Failed to fetch book details from Google Books API');

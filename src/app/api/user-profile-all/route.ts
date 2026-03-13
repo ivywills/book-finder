@@ -1,15 +1,20 @@
 import { NextResponse } from 'next/server';
-import { MongoClient } from 'mongodb';
-
-const client = new MongoClient(process.env.MONGODB_URI!);
+import connectToDatabase from '../../../../db';
 
 export async function GET() {
   try {
-    await client.connect();
-    const db = client.db('bookfinder');
+    const db = await connectToDatabase();
     const usersCollection = db.collection('users');
     const mongoUsers = await usersCollection
       .find({ email: { $exists: true, $ne: '' } })
+      .project({
+        _id: 0,
+        id: 1,
+        email: 1,
+        firstName: 1,
+        lastName: 1,
+        imageUrl: 1,
+      })
       .limit(50)
       .toArray();
 
@@ -24,7 +29,5 @@ export async function GET() {
     return NextResponse.json({ users }, { status: 200 });
   } catch (error) {
     return NextResponse.json({ users: [] }, { status: 200 });
-  } finally {
-    await client.close();
   }
 }
