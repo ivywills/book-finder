@@ -629,7 +629,7 @@ const HomePage = () => {
   const renderLoadingCards = () => {
     return (
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
-        {Array.from({ length: 3 }, (_, index) => (
+        {Array.from({ length: 2 }, (_, index) => (
           <div
             key={`loading-${index}`}
             className="animate-pulse rounded-[1.8rem] border border-base-300/70 bg-base-100/70 p-4 shadow-lg"
@@ -846,7 +846,7 @@ const HomePage = () => {
                   ) : null}
                 </form>
 
-                <div className="mt-4 grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+                <div className="mt-4 hidden gap-3 sm:grid sm:grid-cols-2 xl:grid-cols-4">
                   {QUICK_STARTS.map((item, index) => (
                     <button
                       key={item.title}
@@ -892,13 +892,6 @@ const HomePage = () => {
                     ? 'Here are a few places to start'
                     : 'Results'}
               </h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-base-content/70">
-                {results.length > 0
-                  ? `You found ${results.length} book${
-                      results.length === 1 ? '' : 's'
-                    }.`
-                  : 'Start with a description.'}
-              </p>
             </div>
 
             {results.length > 0 ? (
@@ -949,9 +942,6 @@ const HomePage = () => {
               <h2 className="mt-3 text-3xl font-semibold text-balance sm:text-4xl">
                 Saved books
               </h2>
-              <p className="mt-3 max-w-2xl text-sm leading-6 text-base-content/70">
-                Keep the good ones nearby.
-              </p>
             </div>
 
             {favorites.length > 0 ? (
