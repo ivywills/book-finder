@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect } from 'react';
 import {
   SignedIn,
   SignedOut,
@@ -8,6 +9,14 @@ import {
   UserButton,
 } from '@clerk/nextjs';
 import ThemeToggle from './theme-toggle';
+
+function SignedOutLightMode() {
+  useEffect(() => {
+    document.documentElement.setAttribute('data-theme', 'light');
+  }, []);
+
+  return null;
+}
 
 export default function AuthNav() {
   return (
@@ -79,6 +88,7 @@ export default function AuthNav() {
       </SignedIn>
 
       <SignedOut>
+        <SignedOutLightMode />
         <div className="navbar bg-base-100 shadow-md sticky top-0 mb-4 z-50">
           <div className="absolute top-5 left-4 h-5 flex items-center">
             <SignInButton>
