@@ -11,6 +11,7 @@ interface WebhookEvent {
   type: string;
   data: {
     userId?: string;
+    isbn?: string;
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     book?: any;
     friendId?: string;
@@ -231,11 +232,14 @@ export async function POST(req: NextRequest) {
       );
     } else if (payload.type === 'remove.favorite') {
       const { userId, isbn } = payload.data;
-      await usersCollection.updateOne(
-        { id: userId },
-        { $pull: { favorites: { isbn } } },
-        { upsert: true }
-      );
+      if (isbn) {
+        await usersCollection.updateOne(
+          { id: userId },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          { $pull: { favorites: { isbn } } as any },
+          { upsert: true }
+        );
+      }
     } else if (payload.type === 'add.currentlyReading') {
       const { userId, book } = payload.data;
       await usersCollection.updateOne(

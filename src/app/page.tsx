@@ -669,10 +669,10 @@ const HomePage = () => {
               onClick={() => loadPrompt(item.prompt)}
               className={`rounded-[1.5rem] border border-base-300/70 p-4 text-left shadow-sm transition hover:-translate-y-0.5 ${item.accent}`}
             >
-              <p className="text-sm font-semibold text-base-content">
+              <p className="text-sm font-semibold text-slate-900">
                 {item.title}
               </p>
-              <p className="mt-1 text-sm text-base-content/70">{item.note}</p>
+              <p className="mt-1 text-sm text-slate-700">{item.note}</p>
             </button>
           ))}
         </div>
@@ -861,10 +861,10 @@ const HomePage = () => {
                         index % 2 === 0 ? 'rotate-[-1deg]' : 'rotate-[1deg]'
                       } ${item.accent}`}
                     >
-                      <p className="text-sm font-semibold text-base-content">
+                      <p className="text-sm font-semibold text-slate-900">
                         {item.title}
                       </p>
-                      <p className="mt-1 text-sm text-base-content/70">
+                      <p className="mt-1 text-sm text-slate-700">
                         {item.note}
                       </p>
                     </button>
