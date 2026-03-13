@@ -13,7 +13,6 @@ import Image, { type StaticImageData } from 'next/image';
 import { generatePrompts } from '../actions/open-ai';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import {
-  faArrowUpRightFromSquare,
   faChevronDown,
   faChevronLeft,
   faChevronRight,
@@ -497,10 +496,6 @@ const HomePage = () => {
                 <p className="text-sm text-base-content/65">
                   {book.author || 'Author unavailable'}
                 </p>
-                <div className="pt-3 text-sm text-base-content/55">
-                  <span>Open details </span>
-                  <FontAwesomeIcon icon={faArrowUpRightFromSquare} />
-                </div>
               </div>
             </article>
           ))}
