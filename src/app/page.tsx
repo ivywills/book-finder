@@ -780,7 +780,7 @@ const HomePage = () => {
                 <form
                   id="search-panel"
                   onSubmit={handleSubmit}
-                  className="relative mt-8 rounded-[2.1rem] border border-base-300/70 bg-base-100/94 p-5 shadow-xl transition-all duration-300 sm:p-6"
+                  className="relative mt-8 rounded-[2.1rem] bg-base-100/94 p-5 transition-all duration-300 sm:p-6"
                 >
                   <div className="flex items-center justify-between gap-3">
                     <p className="text-sm font-semibold uppercase tracking-[0.25em] text-primary/70">
