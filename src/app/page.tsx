@@ -27,7 +27,6 @@ import {
   faHeart as regularHeart,
   faStar as regularStar,
 } from '@fortawesome/free-regular-svg-icons';
-import defaultCover from './default-cover.jpg';
 import booksArtwork from './books.png';
 
 interface Book {
@@ -86,12 +85,106 @@ const QUICK_STARTS: PromptShortcut[] = [
   },
 ];
 
-const getCoverSrc = (book: Book) => {
-  if (typeof book.image === 'string') {
-    return book.image;
+const normalizeGoogleCoverUrl = (url: string) =>
+  url
+    .replace(/^http:\/\//, 'https://')
+    .replace(/&edge=curl/g, '')
+    .replace(/zoom=\d+/g, 'zoom=3');
+
+const normalizeCoverUrl = (url: string) => {
+  if (url.includes('books.google.com/books/content')) {
+    return normalizeGoogleCoverUrl(url);
   }
 
-  return book.image?.src ?? defaultCover.src;
+  return url.replace(/^http:\/\//, 'https://');
+};
+
+type GoogleCoverSize =
+  | 'smallThumbnail'
+  | 'thumbnail'
+  | 'small'
+  | 'medium'
+  | 'large'
+  | 'extraLarge';
+
+type GoogleIndustryIdentifier = {
+  type?: string;
+  identifier?: string;
+};
+
+const getBestGoogleCover = (
+  imageLinks?: Partial<Record<'smallThumbnail' | 'thumbnail' | 'small' | 'medium' | 'large' | 'extraLarge', string>>
+) => {
+  const candidates: Array<[GoogleCoverSize, string | undefined]> = [
+    ['extraLarge', imageLinks?.extraLarge],
+    ['large', imageLinks?.large],
+    ['medium', imageLinks?.medium],
+    ['small', imageLinks?.small],
+    ['thumbnail', imageLinks?.thumbnail],
+    ['smallThumbnail', imageLinks?.smallThumbnail],
+  ];
+  const nextImage = candidates.find(
+    ([, candidate]) => typeof candidate === 'string' && candidate.length > 0
+  );
+
+  if (!nextImage) {
+    return null;
+  }
+
+  const [, url] = nextImage;
+
+  return {
+    size: nextImage[0],
+    url: normalizeGoogleCoverUrl(url as string),
+  };
+};
+
+const getPreferredGoogleIsbn = (
+  identifiers?: GoogleIndustryIdentifier[]
+) => {
+  const isbn13 = identifiers?.find(
+    (identifier) =>
+      identifier.type === 'ISBN_13' && typeof identifier.identifier === 'string'
+  )?.identifier;
+
+  if (isbn13) {
+    return isbn13;
+  }
+
+  return identifiers?.find(
+    (identifier) =>
+      identifier.type === 'ISBN_10' && typeof identifier.identifier === 'string'
+  )?.identifier;
+};
+
+const getBestOpenLibraryCover = (
+  cover?: Partial<Record<'small' | 'medium' | 'large', string>>
+) => {
+  const nextImage = [cover?.large, cover?.medium, cover?.small].find(
+    (candidate) => typeof candidate === 'string' && candidate.length > 0
+  );
+
+  return nextImage ? normalizeCoverUrl(nextImage) : null;
+};
+
+const isGoogleHostedCoverUrl = (url: string) =>
+  url.includes('books.google.com/books/content') ||
+  url.includes('books.googleusercontent.com/books/content');
+
+const hasRenderableCover = (book: Book) => {
+  if (typeof book.image === 'string') {
+    return book.image.trim().length > 0 && !isGoogleHostedCoverUrl(book.image);
+  }
+
+  return Boolean(book.image?.src);
+};
+
+const getCoverSrc = (book: Book) => {
+  if (typeof book.image === 'string') {
+    return normalizeCoverUrl(book.image);
+  }
+
+  return book.image?.src ?? undefined;
 };
 
 const getAddedAtTime = (book: Book) => {
@@ -127,6 +220,19 @@ const getGoogleBooksUrl = (title: string) => {
   )}${keySuffix}`;
 };
 
+const getOpenLibrarySearchUrl = (title: string, author?: string) => {
+  const params = new URLSearchParams({
+    title,
+    limit: '5',
+  });
+
+  if (author?.trim()) {
+    params.set('author', author.trim());
+  }
+
+  return `https://openlibrary.org/search.json?${params.toString()}`;
+};
+
 const enrichBook = async (book: Book): Promise<Book> => {
   const baseBook: Book = {
     ...book,
@@ -134,6 +240,11 @@ const enrichBook = async (book: Book): Promise<Book> => {
     averageRating: book.averageRating ?? null,
     ratingsCount: book.ratingsCount ?? null,
   };
+  let nextImage =
+    typeof baseBook.image === 'string' ? normalizeCoverUrl(baseBook.image) : null;
+  let nextAverageRating = baseBook.averageRating;
+  let nextRatingsCount = baseBook.ratingsCount;
+  let nextIsbn = baseBook.isbn;
 
   try {
     const googleBooksUrl = getGoogleBooksUrl(book.name);
@@ -144,14 +255,21 @@ const enrichBook = async (book: Book): Promise<Book> => {
       if (response.ok) {
         const data = await response.json();
         const volumeInfo = data.items?.[0]?.volumeInfo;
+        const googleCover = getBestGoogleCover(volumeInfo?.imageLinks);
+        const googleIsbn = getPreferredGoogleIsbn(
+          volumeInfo?.industryIdentifiers as GoogleIndustryIdentifier[] | undefined
+        );
 
-        if (volumeInfo?.imageLinks?.thumbnail) {
-          return {
-            ...baseBook,
-            image: volumeInfo.imageLinks.thumbnail,
-            averageRating: volumeInfo.averageRating ?? baseBook.averageRating,
-            ratingsCount: volumeInfo.ratingsCount ?? baseBook.ratingsCount,
-          };
+        nextAverageRating = volumeInfo?.averageRating ?? nextAverageRating;
+        nextRatingsCount = volumeInfo?.ratingsCount ?? nextRatingsCount;
+        nextIsbn = googleIsbn ?? nextIsbn;
+
+        if (
+          googleCover &&
+          !nextImage &&
+          !isGoogleHostedCoverUrl(googleCover.url)
+        ) {
+          nextImage = googleCover.url;
         }
       }
     }
@@ -159,33 +277,72 @@ const enrichBook = async (book: Book): Promise<Book> => {
     console.error(`Error fetching Google Books data for ${book.name}`, error);
   }
 
-  if (book.isbn) {
+  if (nextIsbn) {
     try {
       const openLibraryUrl = `https://openlibrary.org/api/books?bibkeys=ISBN:${encodeURIComponent(
-        book.isbn
+        nextIsbn
       )}&jscmd=data&format=json`;
       const response = await fetch(openLibraryUrl);
 
       if (response.ok) {
         const data = await response.json();
-        const openLibraryBook = data[`ISBN:${book.isbn}`];
+        const openLibraryBook = data[`ISBN:${nextIsbn}`];
+        const openLibraryCover = getBestOpenLibraryCover(openLibraryBook?.cover);
 
-        if (openLibraryBook?.cover?.medium) {
-          return {
-            ...baseBook,
-            image: openLibraryBook.cover.medium,
-          };
+        if (openLibraryCover) {
+          nextImage = openLibraryCover;
         }
       }
     } catch (error) {
-      console.error(`Error fetching Open Library data for ${book.isbn}`, error);
+      console.error(`Error fetching Open Library data for ${nextIsbn}`, error);
     }
   }
 
-  return baseBook;
+  if (!nextImage) {
+    try {
+      const response = await fetch(
+        getOpenLibrarySearchUrl(book.name, book.author)
+      );
+
+      if (response.ok) {
+        const data = await response.json();
+        const matchingDoc = data.docs?.find(
+          (
+            doc: {
+              cover_i?: number;
+              title?: string;
+            }
+          ) =>
+            typeof doc.cover_i === 'number' &&
+            typeof doc.title === 'string' &&
+            doc.title.toLowerCase() === book.name.toLowerCase()
+        );
+
+        if (matchingDoc?.cover_i) {
+          nextImage = normalizeCoverUrl(
+            `https://covers.openlibrary.org/b/id/${matchingDoc.cover_i}-L.jpg?default=false`
+          );
+        }
+      }
+    } catch (error) {
+      console.error(
+        `Error fetching Open Library search cover for ${book.name}`,
+        error
+      );
+    }
+  }
+
+  return {
+    ...baseBook,
+    isbn: nextIsbn,
+    image: nextImage,
+    averageRating: nextAverageRating,
+    ratingsCount: nextRatingsCount,
+  };
 };
 
-const enrichBooks = async (books: Book[]) => Promise.all(books.map(enrichBook));
+const enrichBooks = async (books: Book[]) =>
+  (await Promise.all(books.map(enrichBook))).filter(hasRenderableCover);
 
 const scrollShelf = (shelfId: string, direction: 'back' | 'forward') => {
   const shelf = document.getElementById(shelfId);
@@ -219,6 +376,21 @@ const HomePage = () => {
   const [isSearchPanelOpen, setIsSearchPanelOpen] = useState(true);
   const favoritesRequestVersion = useRef(0);
   const isSearchCardCollapsed = !isSearchPanelOpen;
+
+  useEffect(() => {
+    setResultsPage((currentPage) =>
+      Math.min(currentPage, Math.max(1, Math.ceil(results.length / ITEMS_PER_PAGE)))
+    );
+  }, [results.length]);
+
+  useEffect(() => {
+    setFavoritesPage((currentPage) =>
+      Math.min(
+        currentPage,
+        Math.max(1, Math.ceil(favorites.length / ITEMS_PER_PAGE))
+      )
+    );
+  }, [favorites.length]);
 
   useEffect(() => {
     const fetchFavorites = async () => {
@@ -306,6 +478,14 @@ const HomePage = () => {
     favorites.some((favorite) => favorite.isbn === book.isbn);
   const isFavoritePending = (isbn: string) =>
     pendingFavoriteIsbns.includes(isbn);
+  const removeBookWithoutCover = (isbn: string) => {
+    setResults((currentBooks) =>
+      currentBooks.filter((book) => book.isbn !== isbn)
+    );
+    setFavorites((currentBooks) =>
+      currentBooks.filter((book) => book.isbn !== isbn)
+    );
+  };
 
   const renderStars = (averageRating: number | null | undefined) => {
     if (averageRating === null || averageRating === undefined) {
@@ -511,9 +691,7 @@ const HomePage = () => {
                   src={getCoverSrc(book)}
                   alt={`${book.name} cover`}
                   className="h-72 w-full object-cover transition duration-500 group-hover:scale-105"
-                  onError={(event) => {
-                    event.currentTarget.src = defaultCover.src;
-                  }}
+                  onError={() => removeBookWithoutCover(book.isbn)}
                 />
                 <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
 
@@ -623,9 +801,7 @@ const HomePage = () => {
                   src={getCoverSrc(book)}
                   alt={`${book.name} cover`}
                   className="h-36 w-28 rounded-[1rem] object-cover shadow-md"
-                  onError={(event) => {
-                    event.currentTarget.src = defaultCover.src;
-                  }}
+                  onError={() => removeBookWithoutCover(book.isbn)}
                 />
               </Link>
 
