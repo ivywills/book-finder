@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect } from 'react';
+import { HomeIcon, UserCircleIcon } from '@heroicons/react/outline';
 import {
   SignedIn,
   SignedOut,
@@ -19,6 +20,11 @@ function SignedOutLightMode() {
 }
 
 export default function AuthNav() {
+  const desktopNavButtonClassName =
+    'inline-flex h-10 min-w-[7.5rem] items-center justify-center gap-2 rounded-full border border-base-300/70 bg-base-100/90 px-4 text-sm font-medium transition hover:border-primary/30 hover:bg-base-100';
+  const mobileNavButtonClassName =
+    'inline-flex h-10 w-full items-center gap-2 rounded-full px-3 text-sm font-medium';
+
   return (
     <>
       <SignedIn>
@@ -30,14 +36,23 @@ export default function AuthNav() {
           </div>
           <div className="flex-none">
             <ul className="hidden md:flex menu menu-horizontal px-[0.25rem]">
-              <li>
-                <a href="/">Home</a>
+              <li className="!p-0">
+                <a href="/" className={desktopNavButtonClassName}>
+                  <HomeIcon className="h-4 w-4 shrink-0" />
+                  <span>Home</span>
+                </a>
               </li>
-              <li>
-                <a href="/reading-list">Profile</a>
+              <li className="!p-0">
+                <a
+                  href="/reading-list"
+                  className={desktopNavButtonClassName}
+                >
+                  <UserCircleIcon className="h-4 w-4 shrink-0" />
+                  <span>Profile</span>
+                </a>
               </li>
-              <li>
-                <ThemeToggle />
+              <li className="!p-0">
+                <ThemeToggle buttonClassName={desktopNavButtonClassName} />
               </li>
             </ul>
 
@@ -67,13 +82,25 @@ export default function AuthNav() {
                 className="menu menu-compact dropdown-content mt-3 p-2 shadow bg-base-100 rounded-box w-52"
               >
                 <li>
-                  <a href="/">Home</a>
+                  <a href="/" className={mobileNavButtonClassName}>
+                    <HomeIcon className="h-4 w-4 shrink-0" />
+                    <span>Home</span>
+                  </a>
                 </li>
                 <li>
-                  <a href="/reading-list">Profile</a>
+                  <a
+                    href="/reading-list"
+                    className={mobileNavButtonClassName}
+                  >
+                    <UserCircleIcon className="h-4 w-4 shrink-0" />
+                    <span>Profile</span>
+                  </a>
                 </li>
                 <li>
-                  <ThemeToggle />
+                  <ThemeToggle
+                    buttonClassName={mobileNavButtonClassName}
+                    menuClassName="right-auto left-0"
+                  />
                 </li>
               </ul>
             </div>

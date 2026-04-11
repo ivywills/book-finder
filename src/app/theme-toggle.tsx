@@ -3,7 +3,15 @@
 import { useState, useEffect, useRef } from 'react';
 import { PencilIcon } from '@heroicons/react/outline';
 
-export default function ThemeToggle() {
+interface ThemeToggleProps {
+  buttonClassName?: string;
+  menuClassName?: string;
+}
+
+export default function ThemeToggle({
+  buttonClassName = '',
+  menuClassName = '',
+}: ThemeToggleProps) {
   const [theme, setTheme] = useState('light');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const [mounted, setMounted] = useState(false);
@@ -58,18 +66,20 @@ export default function ThemeToggle() {
   return (
     <div className="relative" ref={dropdownRef}>
       <button
+        type="button"
         tabIndex={0}
         onClick={toggleDropdown}
-        className="inline-flex items-center gap-2"
+        className={buttonClassName || 'inline-flex items-center gap-2'}
         aria-label="Themes"
+        aria-expanded={dropdownOpen}
       >
-        <PencilIcon className="h-5 w-5" />
+        <PencilIcon className="h-4 w-4 shrink-0" />
         <span>Themes</span>
       </button>
       {dropdownOpen && (
         <ul
           tabIndex={0}
-          className="absolute -right-1 -top-2 mt-2 p-2 shadow bg-base-100 rounded-box w-52 z-10"
+          className={`absolute right-0 top-full z-10 mt-2 w-52 rounded-box bg-base-100 p-2 shadow ${menuClassName}`}
         >
           <li>
             <label className="cursor-pointer">
