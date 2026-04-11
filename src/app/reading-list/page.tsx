@@ -22,6 +22,10 @@ interface Book {
   };
 }
 
+const isSameBook = (left: Book, right: Book) =>
+  left.title === right.title &&
+  (left.authors?.join('|') ?? '') === (right.authors?.join('|') ?? '');
+
 const ReadingPage = () => {
   const { user } = useUser();
   const clerk = useClerk();
@@ -178,6 +182,7 @@ const ReadingPage = () => {
       }
 
       setConfirmedBook(book);
+      setPagesRead(0);
       setBook(null);
       setTitle('');
     } catch (err) {
@@ -213,13 +218,15 @@ const ReadingPage = () => {
         throw new Error('Failed to add completed book');
       }
 
-      const fetchCompletedBooks = await fetch(`/api/clerk?userId=${user.id}`);
-      if (fetchCompletedBooks.ok) {
-        const data = await fetchCompletedBooks.json();
-        setCompletedBooks(data.userProfile.completedBooks || []);
-      }
-
+      setCompletedBooks((currentBooks) =>
+        currentBooks.some((currentBook) =>
+          isSameBook(currentBook, completedBook)
+        )
+          ? currentBooks
+          : [completedBook, ...currentBooks]
+      );
       setBook(null);
+      setTitle('');
     } catch (err) {
       console.error('Error adding completed book:', err);
     } finally {
@@ -372,77 +379,82 @@ const ReadingPage = () => {
     };
 
     return (
-      <div className="relative">
+      <div className="relative space-y-4">
         <div
           id={`${idPrefix}-carousel`}
-          className="carousel w-full overflow-x-scroll snap-x snap-mandatory relative"
+          className="carousel relative w-full overflow-x-scroll snap-x snap-mandatory rounded-[2rem] border border-base-300/70 bg-base-100/72 px-2 py-4 shadow-xl backdrop-blur"
           onScroll={() => handleScroll(`${idPrefix}-carousel`)}
         >
           {slides.map((slide, index) => (
             <div
               id={`${idPrefix}${index}`}
-              className="carousel-item relative w-full flex justify-center snap-center"
+              className="carousel-item relative flex w-full justify-center snap-center"
               key={index}
             >
               {slide.map((book) => (
                 <div
                   key={book.title}
-                  className="card w-1/3 p-4 relative hover:scale-105 transition-transform duration-300"
+                  className="w-1/3 p-2"
                 >
-                  <Image
-                    src={book.imageLinks?.thumbnail || defaultCover.src}
-                    alt={`${book.title} cover`}
-                    width={150}
-                    height={225}
-                    className="object-cover rounded-lg shadow-md w-full h-full"
-                    onError={(e) => {
-                      e.currentTarget.src = defaultCover.src;
-                    }}
-                  />
-                  <div className="mt-2">
-                    <strong className="block truncate text-center">
-                      {book.title}
-                    </strong>
-                    <p className="block truncate text-center">
-                      {book.authors
-                        ? book.authors.join(', ')
-                        : 'Unknown Author'}
-                    </p>
+                  <div className="relative rounded-[1.7rem] border border-base-300/70 bg-base-100/92 p-3 shadow-lg transition duration-300 hover:-translate-y-1">
+                    <Image
+                      src={book.imageLinks?.thumbnail || defaultCover.src}
+                      alt={`${book.title} cover`}
+                      width={150}
+                      height={225}
+                      className="h-auto w-full rounded-[1.2rem] object-cover shadow-md"
+                      onError={(e) => {
+                        e.currentTarget.src = defaultCover.src;
+                      }}
+                    />
+                    <div className="mt-4 px-1">
+                      <strong className="block truncate text-center text-sm font-semibold">
+                        {book.title}
+                      </strong>
+                      <p className="mt-1 block truncate text-center text-sm text-base-content/65">
+                        {book.authors
+                          ? book.authors.join(', ')
+                          : 'Unknown Author'}
+                      </p>
+                    </div>
                   </div>
                 </div>
               ))}
             </div>
           ))}
         </div>
-        <div className="hidden md:flex absolute left-5 right-5 top-1/2 transform -translate-y-1/2 justify-between z-10">
+        <div className="absolute left-5 right-5 top-1/2 hidden -translate-y-1/2 justify-between md:flex">
           <button
+            type="button"
             onClick={() => {
               const prevSlideIndex =
                 (currentSlide - 1 + slides.length) % slides.length;
               setCurrentSlide(prevSlideIndex);
               scrollToSlide(`${idPrefix}-carousel`, prevSlideIndex);
             }}
-            className="btn btn-circle border-primary border-2 text-primary"
+            className="btn btn-circle btn-sm border-base-300 bg-base-100/90 shadow-md"
           >
             ❮
           </button>
           <button
+            type="button"
             onClick={() => {
               const nextSlideIndex = (currentSlide + 1) % slides.length;
               setCurrentSlide(nextSlideIndex);
               scrollToSlide(`${idPrefix}-carousel`, nextSlideIndex);
             }}
-            className="btn btn-circle border-primary border-2 text-primary"
+            className="btn btn-circle btn-sm border-base-300 bg-base-100/90 shadow-md"
           >
             ❯
           </button>
         </div>
-        <div className="flex justify-center mt-4 md:hidden">
+        <div className="mt-4 flex justify-center md:hidden">
           {slides.map((_, index) => (
             <button
               key={index}
-              className={`btn-secondary mx-1 w-2 h-2 rounded-full ${
-                currentSlide === index ? 'bg-gray-800' : 'bg-gray-400'
+              type="button"
+              className={`mx-1 h-2.5 w-2.5 rounded-full transition ${
+                currentSlide === index ? 'bg-base-content' : 'bg-base-300'
               }`}
               onClick={() => {
                 setCurrentSlide(index);
@@ -455,234 +467,349 @@ const ReadingPage = () => {
     );
   };
 
-  if (initialLoad || loading) {
+  const sectionCardClassName =
+    'rounded-[2.2rem] border border-base-300/70 bg-base-100/78 p-6 shadow-2xl backdrop-blur sm:p-8';
+  const sectionEyebrowClassName =
+    'text-xs font-semibold uppercase tracking-[0.35em] text-primary/70';
+  const insetCardClassName =
+    'rounded-[1.9rem] bg-base-100/88 p-5 shadow-xl sm:p-6';
+
+  if (initialLoad) {
     return (
-      <div className="flex justify-center items-center min-h-screen">
-        <span className="loading loading-spinner loading-md"></span>
-      </div>
+      <main className="relative min-h-screen overflow-hidden pb-16">
+        <div className="pointer-events-none absolute inset-0 landing-dots opacity-60" />
+        <div className="pointer-events-none absolute left-[-8rem] top-0 h-72 w-72 rounded-full bg-amber-200/40 blur-3xl" />
+        <div className="pointer-events-none absolute right-[-7rem] top-24 h-80 w-80 rounded-full bg-sky-200/40 blur-3xl" />
+        <div className="pointer-events-none absolute bottom-0 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-rose-200/30 blur-3xl" />
+        <div className="relative mx-auto flex min-h-[70vh] w-full max-w-6xl items-center justify-center px-4 sm:px-6 lg:px-8">
+          <div className={`${sectionCardClassName} w-full max-w-md text-center`}>
+            <span className="loading loading-spinner loading-md" />
+            <p className="mt-4 text-sm text-base-content/60">
+              Loading your shelf...
+            </p>
+          </div>
+        </div>
+      </main>
     );
   }
 
   return (
-    <div className="max-w-lg mx-auto p-5">
-      {/* User Information */}
-      <h1 className="font-bold mb-6 text-center text-2xl">Book Shelf</h1>
-      <label
-        htmlFor="prompt"
-        className="block mb-4 text-lg text-primary text-center"
-      >
-        Start tracking the books you&apos;ve loved — and the one you&apos;re
-        reading right now!
-      </label>
-      <h1 className="text-l font-bold mb-6 mt-2">User Information</h1>
-      <div className="mb-6 flex items-center relative">
-        <Image
-          src={profileImage || defaultProfilePic.src}
-          alt="Profile"
-          width={96}
-          height={96}
-          className="rounded-full object-cover aspect-square"
-        />
-        <button
-          className="btn btn-solid btn-sm btn-circle btn-primary -ml-6 -mb-16"
-          onClick={() => setEditMode(!editMode)}
-        >
-          <PencilIcon className="h-5 w-5" />
-        </button>
+    <main className="relative min-h-screen overflow-hidden pb-16">
+      <div className="pointer-events-none absolute inset-0 landing-dots opacity-60" />
+      <div className="pointer-events-none absolute left-[-8rem] top-0 h-72 w-72 rounded-full bg-amber-200/40 blur-3xl" />
+      <div className="pointer-events-none absolute right-[-7rem] top-24 h-80 w-80 rounded-full bg-sky-200/40 blur-3xl" />
+      <div className="pointer-events-none absolute bottom-0 left-1/2 h-72 w-72 -translate-x-1/2 rounded-full bg-rose-200/30 blur-3xl" />
 
-        <div className="ml-4">
-          <h2 className="text-2xl font-bold">
-            {user
-              ? user.fullName || user.primaryEmailAddress?.toString()
-              : 'Guest'}
-          </h2>
-          <p className="text-lg">Books Read: {completedBooks.length}</p>
-        </div>
-      </div>
-      {editMode && (
-        <>
-          <div className="mb-6">
-            <label htmlFor="profileImage" className="block mb-2">
-              Upload Profile Image
-            </label>
-            <input
-              type="file"
-              id="profileImage"
-              className="input w-full"
-              accept="image/*"
-              onChange={handleProfileImageChange}
-            />
-          </div>
-        </>
-      )}
-      <hr className="border-t-2 border-primary my-6" />
-      <h1 className="text-l font-bold mb-6 mt-8">Add a book to Profile</h1>
-      <form onSubmit={handleSubmit} className="space-y-4">
-        <div>
-          <label htmlFor="title" className="block mb-2">
-            Add a book you&apos;re currently reading to track your progress, or
-            showcase a favorite you&apos;ve already finished to share with
-            friends!
-          </label>
-          <div className="flex items-center space-x-2">
-            <input
-              type="text"
-              id="title"
-              className="input input-bordered flex-grow"
-              placeholder="🔍 Enter book title"
-              value={title}
-              onChange={(e) => setTitle(e.target.value)}
-              required
-            />
-            <button type="submit" className="btn btn-primary">
-              Search
-            </button>
-          </div>
-        </div>
-      </form>
-      {loading && <div></div>}
-      {book && (
-        <div className="mt-6 p-4 border rounded-lg">
-          <h2 className="text-xl font-bold mb-2">{book.title}</h2>
-          {book.imageLinks && book.imageLinks.thumbnail && (
-            <Image
-              src={book.imageLinks.thumbnail}
-              alt={`${book.title} cover`}
-              width={96}
-              height={144}
-              className="object-cover mb-2"
-            />
-          )}
-          <p>
-            <strong>Author:</strong>{' '}
-            {book.authors ? book.authors.join(', ') : 'Unknown Author'}
-          </p>
-          <p>
-            <strong>Publisher:</strong> {book.publisher || 'Unknown Publisher'}
-          </p>
-          <p>
-            <strong>Published Date:</strong>{' '}
-            {book.publishedDate || 'Unknown Date'}
-          </p>
-          <p>
-            <strong>Number of Pages:</strong> {book.pageCount || 'Unknown'}
-          </p>
-          <div className="mt-4">
-            <p className="text-lg font-semibold">Add this book to:</p>
-            <button
-              className="btn btn-success mt-2 mr-2"
-              onClick={handleConfirmCurrentlyReading}
-            >
-              Currently Reading
-            </button>
-            <button
-              className="btn btn-success mt-2"
-              onClick={() => {
-                if (book) {
-                  handleConfirmCompleted(book);
-                }
-              }}
-            >
-              Completed Books
-            </button>
-          </div>
-        </div>
-      )}
-      <hr className="border-t-2 border-primary my-6" />
-      <h1 className="text-l font-bold mb-6 mt-8">Currently Reading</h1>
-      {confirmedBook ? (
-        <div className="mb-6 p-4 border rounded-lg bg-base-300">
-          <h2 className="text-xl font-bold mb-2">{confirmedBook.title}</h2>
-          {confirmedBook.imageLinks && confirmedBook.imageLinks.thumbnail && (
-            <Image
-              src={confirmedBook.imageLinks.thumbnail}
-              alt={`${confirmedBook.title} cover`}
-              width={96}
-              height={144}
-              className="object-cover mb-2"
-            />
-          )}
-          <p>
-            <strong>Author:</strong>{' '}
-            {confirmedBook.authors
-              ? confirmedBook.authors.join(', ')
-              : 'Unknown Author'}
-          </p>
-          <p>
-            <strong>Publisher:</strong>{' '}
-            {confirmedBook.publisher || 'Unknown Publisher'}
-          </p>
-          <p>
-            <strong>Published Date:</strong>{' '}
-            {confirmedBook.publishedDate || 'Unknown Date'}
-          </p>
-          {!!confirmedBook.pageCount && (
-            <>
-              <p>
-                <strong>Number of Pages:</strong>{' '}
-                {confirmedBook.pageCount || 'Unknown'}
+      <div className="relative mx-auto flex w-full max-w-6xl flex-col gap-8 px-4 pb-8 pt-4 sm:px-6 lg:px-8">
+        <section className={`${sectionCardClassName} relative overflow-hidden`}>
+          <div className="pointer-events-none absolute right-[-3rem] top-[-3rem] h-32 w-32 rounded-full bg-primary/10 blur-3xl" />
+          <div className="pointer-events-none absolute bottom-[-2rem] left-[-1rem] h-28 w-28 rounded-full bg-secondary/15 blur-3xl" />
+
+          <p className={sectionEyebrowClassName}>Profile</p>
+          <div className="mt-4 flex flex-col gap-6 sm:flex-row sm:items-center">
+            <div className="relative w-fit">
+              <Image
+                src={profileImage || defaultProfilePic.src}
+                alt="Profile"
+                width={112}
+                height={112}
+                className="aspect-square rounded-full border border-base-300/70 object-cover shadow-xl"
+              />
+              <button
+                type="button"
+                className="absolute bottom-0 right-0 inline-flex h-10 w-10 items-center justify-center rounded-full border border-base-300/70 bg-base-100/92 shadow-md transition hover:scale-105"
+                onClick={() => setEditMode(!editMode)}
+                aria-label="Edit profile image"
+              >
+                <PencilIcon className="h-5 w-5" />
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              <h1 className="text-3xl font-semibold text-balance sm:text-4xl">
+                Book Shelf
+              </h1>
+              <p className="max-w-2xl text-sm leading-6 text-base-content/70">
+                Start tracking the books you&apos;ve loved and the one you&apos;re
+                reading right now.
               </p>
-
-              <div className="mt-4">
-                <label htmlFor="pagesRead" className="block mb-2">
-                  Pages Read: {pagesRead} / {confirmedBook.pageCount}
-                </label>
-                <input
-                  type="range"
-                  id="pagesRead"
-                  min="0"
-                  max={confirmedBook.pageCount}
-                  value={pagesRead}
-                  onChange={handlePagesReadChange}
-                  className="range range-secondary w-full"
-                />
+              <div className="inline-flex rounded-full border border-base-300/70 bg-base-100/90 px-4 py-2 text-sm text-base-content/70 shadow-sm">
+                Books read
+                <span className="ml-2 font-semibold text-base-content">
+                  {completedBooks.length}
+                </span>
               </div>
-            </>
+              <h2 className="text-xl font-semibold">
+                {user
+                  ? user.fullName || user.primaryEmailAddress?.toString()
+                  : 'Guest'}
+              </h2>
+            </div>
+          </div>
+          {editMode && (
+            <div className="mt-6 rounded-[1.7rem] border border-base-300/70 bg-base-100/88 p-5 shadow-lg">
+              <label
+                htmlFor="profileImage"
+                className="block text-sm font-medium text-base-content/70"
+              >
+                Upload profile image
+              </label>
+              <input
+                type="file"
+                id="profileImage"
+                className="file-input file-input-bordered mt-3 w-full rounded-full border-base-300 bg-base-100/90"
+                accept="image/*"
+                onChange={handleProfileImageChange}
+              />
+            </div>
           )}
-          <button
-            className="btn mt-4 mx-2"
-            aria-label="complete"
-            onClick={async () => {
-              if (confirmedBook) {
-                await handleConfirmCompleted(confirmedBook);
-                await handleRemove();
-              }
-            }}
-          >
-            <CheckCircleIcon className="h-5 w-5" />
-            Complete
-          </button>
-          <button
-            className="btn mt-4 mx-2"
-            aria-label="remove"
-            onClick={handleRemove}
-          >
-            <TrashIcon className="h-5 w-5" />
-            Remove
-          </button>
-        </div>
-      ) : (
-        <div>
-          No book is currently being read. Please use the search above to add
-          the book you&apos;re currently reading.
-        </div>
-      )}
-      <hr className="border-t-2 border-primary my-6" />
-      <h1 className="text-l font-bold mb-6 mt-8">Completed Books</h1>
-      {completedBooks.length > 0 ? (
-        renderCarousel(
-          completedBooks,
-          'completed-slide',
-          currentSlide,
-          setCurrentSlide
-        )
-      ) : (
-        <div>
-          No completed books yet. Please use the search above to add the books
-          you&apos;ve completed.
-        </div>
-      )}
-    </div>
+        </section>
+
+        <section className={sectionCardClassName}>
+          <div className="border-b border-base-300/50 pb-6">
+            <p className={sectionEyebrowClassName}>Find a book</p>
+            <h2 className="mt-3 text-3xl font-semibold text-balance sm:text-4xl">
+              Add a book to your profile
+            </h2>
+            <p className="mt-3 max-w-2xl text-sm leading-6 text-base-content/70">
+              Add a book you&apos;re currently reading to track your progress, or
+              showcase one you&apos;ve already finished.
+            </p>
+          </div>
+
+          <form onSubmit={handleSubmit} className="mt-8 space-y-4">
+            <div className="flex flex-col gap-3 sm:flex-row">
+              <input
+                type="text"
+                id="title"
+                className="input input-bordered h-14 flex-grow rounded-full border-base-300 bg-base-100/90 px-5 text-base shadow-sm"
+                placeholder="Enter book title"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                required
+              />
+              <button type="submit" className="btn btn-primary h-14 rounded-full px-6">
+                {loading ? 'Searching...' : 'Search'}
+              </button>
+            </div>
+          </form>
+
+          {book && (
+            <div className={`mt-8 ${insetCardClassName}`}>
+              <div className="grid gap-6 sm:grid-cols-[8rem_1fr]">
+                {book.imageLinks?.thumbnail ? (
+                  <Image
+                    src={book.imageLinks.thumbnail}
+                    alt={`${book.title} cover`}
+                    width={128}
+                    height={192}
+                    className="h-auto w-32 rounded-[1.3rem] object-cover shadow-md"
+                  />
+                ) : null}
+                <div className="space-y-3">
+                  <h3 className="text-2xl font-semibold text-balance">
+                    {book.title}
+                  </h3>
+                  <p className="text-sm text-base-content/70">
+                    <strong className="font-semibold text-base-content">
+                      Author:
+                    </strong>{' '}
+                    {book.authors ? book.authors.join(', ') : 'Unknown Author'}
+                  </p>
+                  <p className="text-sm text-base-content/70">
+                    <strong className="font-semibold text-base-content">
+                      Publisher:
+                    </strong>{' '}
+                    {book.publisher || 'Unknown Publisher'}
+                  </p>
+                  <p className="text-sm text-base-content/70">
+                    <strong className="font-semibold text-base-content">
+                      Published:
+                    </strong>{' '}
+                    {book.publishedDate || 'Unknown Date'}
+                  </p>
+                  <p className="text-sm text-base-content/70">
+                    <strong className="font-semibold text-base-content">
+                      Pages:
+                    </strong>{' '}
+                    {book.pageCount || 'Unknown'}
+                  </p>
+                  <div className="flex flex-wrap gap-3 pt-2">
+                    <button
+                      type="button"
+                      className="btn btn-success rounded-full px-5"
+                      onClick={handleConfirmCurrentlyReading}
+                      disabled={loading}
+                    >
+                      Currently Reading
+                    </button>
+                    <button
+                      type="button"
+                      className="btn btn-success rounded-full px-5"
+                      onClick={() => {
+                        if (book) {
+                          handleConfirmCompleted(book);
+                        }
+                      }}
+                      disabled={loading}
+                    >
+                      Completed Books
+                    </button>
+                  </div>
+                </div>
+              </div>
+            </div>
+          )}
+        </section>
+
+        <section className={sectionCardClassName}>
+          <div className="border-b border-base-300/50 pb-6">
+            <p className={sectionEyebrowClassName}>In progress</p>
+            <h2 className="mt-3 text-3xl font-semibold text-balance sm:text-4xl">
+              Currently Reading
+            </h2>
+          </div>
+
+          <div className="mt-8">
+            {confirmedBook ? (
+              <div className={insetCardClassName}>
+                <div className="grid gap-6 lg:grid-cols-[8rem_1fr]">
+                  {confirmedBook.imageLinks?.thumbnail ? (
+                    <Image
+                      src={confirmedBook.imageLinks.thumbnail}
+                      alt={`${confirmedBook.title} cover`}
+                      width={128}
+                      height={192}
+                      className="h-auto w-32 rounded-[1.3rem] object-cover shadow-md"
+                    />
+                  ) : null}
+                  <div className="space-y-3">
+                    <h3 className="text-2xl font-semibold text-balance">
+                      {confirmedBook.title}
+                    </h3>
+                    <p className="text-sm text-base-content/70">
+                      <strong className="font-semibold text-base-content">
+                        Author:
+                      </strong>{' '}
+                      {confirmedBook.authors
+                        ? confirmedBook.authors.join(', ')
+                        : 'Unknown Author'}
+                    </p>
+                    <p className="text-sm text-base-content/70">
+                      <strong className="font-semibold text-base-content">
+                        Publisher:
+                      </strong>{' '}
+                      {confirmedBook.publisher || 'Unknown Publisher'}
+                    </p>
+                    <p className="text-sm text-base-content/70">
+                      <strong className="font-semibold text-base-content">
+                        Published:
+                      </strong>{' '}
+                      {confirmedBook.publishedDate || 'Unknown Date'}
+                    </p>
+                    {!!confirmedBook.pageCount && (
+                      <div className="rounded-[1.5rem] bg-base-200/60 p-4">
+                        <p className="text-sm text-base-content/75">
+                          <strong className="font-semibold text-base-content">
+                            Pages:
+                          </strong>{' '}
+                          {confirmedBook.pageCount || 'Unknown'}
+                        </p>
+                        <div className="mt-4">
+                          <label
+                            htmlFor="pagesRead"
+                            className="block text-sm font-medium text-base-content/70"
+                          >
+                            Pages Read: {pagesRead} / {confirmedBook.pageCount}
+                          </label>
+                          <input
+                            type="range"
+                            id="pagesRead"
+                            min="0"
+                            max={confirmedBook.pageCount}
+                            value={pagesRead}
+                            onChange={handlePagesReadChange}
+                            className="range range-secondary mt-3 w-full"
+                          />
+                        </div>
+                      </div>
+                    )}
+                    <div className="flex flex-wrap gap-3 pt-2">
+                      <button
+                        type="button"
+                        className="btn rounded-full px-5"
+                        aria-label="complete"
+                        onClick={async () => {
+                          if (confirmedBook) {
+                            await handleConfirmCompleted(confirmedBook);
+                            await handleRemove();
+                          }
+                        }}
+                        disabled={loading}
+                      >
+                        <CheckCircleIcon className="h-5 w-5" />
+                        Complete
+                      </button>
+                      <button
+                        type="button"
+                        className="btn rounded-full px-5"
+                        aria-label="remove"
+                        onClick={handleRemove}
+                        disabled={loading}
+                      >
+                        <TrashIcon className="h-5 w-5" />
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-[2rem] border border-dashed border-base-300/70 bg-base-100/70 p-8 text-center shadow-lg">
+                <p className={sectionEyebrowClassName}>Nothing here yet</p>
+                <h3 className="mt-4 text-3xl font-semibold text-balance">
+                  No book is currently being read.
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-base-content/70">
+                  Use the search above to add the book you&apos;re currently
+                  reading.
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+
+        <section className={sectionCardClassName}>
+          <div className="border-b border-base-300/50 pb-6">
+            <p className={sectionEyebrowClassName}>Finished</p>
+            <h2 className="mt-3 text-3xl font-semibold text-balance sm:text-4xl">
+              Completed Books
+            </h2>
+          </div>
+
+          <div className="mt-8">
+            {completedBooks.length > 0 ? (
+              renderCarousel(
+                completedBooks,
+                'completed-slide',
+                currentSlide,
+                setCurrentSlide
+              )
+            ) : (
+              <div className="rounded-[2rem] border border-dashed border-base-300/70 bg-base-100/70 p-8 text-center shadow-lg">
+                <p className={sectionEyebrowClassName}>Shelf is empty</p>
+                <h3 className="mt-4 text-3xl font-semibold text-balance">
+                  No completed books yet.
+                </h3>
+                <p className="mt-3 text-sm leading-6 text-base-content/70">
+                  Use the search above to add the books you&apos;ve finished.
+                </p>
+              </div>
+            )}
+          </div>
+        </section>
+      </div>
+    </main>
   );
 };
 

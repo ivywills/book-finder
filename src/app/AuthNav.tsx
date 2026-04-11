@@ -21,7 +21,7 @@ function SignedOutLightMode() {
 
 export default function AuthNav() {
   const desktopNavButtonClassName =
-    'inline-flex h-10 min-w-[7.5rem] items-center justify-center gap-2 rounded-full border border-base-300/70 bg-base-100/90 px-4 text-sm font-medium transition hover:border-primary/30 hover:bg-base-100';
+    'inline-flex h-10 w-[6.75rem] items-center justify-center gap-2 rounded-full border border-base-300/70 bg-base-100/90 px-4 text-sm font-medium transition hover:border-primary/30 hover:bg-base-100';
   const mobileNavButtonClassName =
     'inline-flex h-10 w-full items-center gap-2 rounded-full px-3 text-sm font-medium';
 
@@ -35,14 +35,14 @@ export default function AuthNav() {
             </div>
           </div>
           <div className="flex-none">
-            <ul className="hidden md:flex menu menu-horizontal px-[0.25rem]">
-              <li className="!p-0">
+            <div className="hidden items-center gap-2 md:flex">
+              <div>
                 <a href="/" className={desktopNavButtonClassName}>
                   <HomeIcon className="h-4 w-4 shrink-0" />
                   <span>Home</span>
                 </a>
-              </li>
-              <li className="!p-0">
+              </div>
+              <div>
                 <a
                   href="/reading-list"
                   className={desktopNavButtonClassName}
@@ -50,11 +50,11 @@ export default function AuthNav() {
                   <UserCircleIcon className="h-4 w-4 shrink-0" />
                   <span>Profile</span>
                 </a>
-              </li>
-              <li className="!p-0">
+              </div>
+              <div>
                 <ThemeToggle buttonClassName={desktopNavButtonClassName} />
-              </li>
-            </ul>
+              </div>
+            </div>
 
             <div className="md:hidden dropdown dropdown-end">
               <label

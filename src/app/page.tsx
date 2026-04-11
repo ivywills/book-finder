@@ -876,20 +876,22 @@ const HomePage = () => {
                     rows={5}
                   />
 
-                  <div className="mt-4 flex flex-wrap items-center gap-2">
-                    {QUICK_STARTS.map((item) => (
-                      <button
-                        key={item.title}
-                        type="button"
-                        onClick={() => loadPrompt(item.prompt)}
-                        className="rounded-full border border-base-300/70 bg-base-100/90 px-4 py-2 text-sm text-base-content/70 transition hover:-translate-y-0.5 hover:border-primary/40 hover:text-base-content sm:hidden"
-                      >
-                        {item.title}
-                      </button>
-                    ))}
+                  <div className="mt-4 flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-center">
+                    <div className="grid grid-cols-2 gap-2 sm:hidden">
+                      {QUICK_STARTS.map((item) => (
+                        <button
+                          key={item.title}
+                          type="button"
+                          onClick={() => loadPrompt(item.prompt)}
+                          className="rounded-full border border-base-300/70 bg-base-100/90 px-4 py-2 text-sm text-base-content/70 transition hover:-translate-y-0.5 hover:border-primary/40 hover:text-base-content"
+                        >
+                          {item.title}
+                        </button>
+                      ))}
+                    </div>
                     <button
                       type="submit"
-                      className="btn btn-primary ml-auto rounded-full px-6 text-base"
+                      className="btn btn-primary rounded-full px-6 text-base sm:ml-auto"
                       disabled={loading}
                     >
                       {loading ? (
