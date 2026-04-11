@@ -57,8 +57,14 @@ export default function ThemeToggle() {
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <button tabIndex={0} onClick={toggleDropdown}>
+      <button
+        tabIndex={0}
+        onClick={toggleDropdown}
+        className="inline-flex items-center gap-2"
+        aria-label="Themes"
+      >
         <PencilIcon className="h-5 w-5" />
+        <span>Themes</span>
       </button>
       {dropdownOpen && (
         <ul

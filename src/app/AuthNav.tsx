@@ -37,9 +37,6 @@ export default function AuthNav() {
                 <a href="/reading-list">Profile</a>
               </li>
               <li>
-                <a href="/friends">Friends</a>
-              </li>
-              <li>
                 <ThemeToggle />
               </li>
             </ul>
@@ -74,9 +71,6 @@ export default function AuthNav() {
                 </li>
                 <li>
                   <a href="/reading-list">Profile</a>
-                </li>
-                <li>
-                  <a href="/friends">Friends</a>
                 </li>
                 <li>
                   <ThemeToggle />
