@@ -883,7 +883,7 @@ const HomePage = () => {
                           key={item.title}
                           type="button"
                           onClick={() => loadPrompt(item.prompt)}
-                          className="rounded-full border border-base-300/70 bg-base-100/90 px-4 py-2 text-sm text-base-content/70 transition hover:-translate-y-0.5 hover:border-primary/40 hover:text-base-content"
+                          className={`rounded-full border border-base-300/70 px-4 py-2 text-sm text-slate-900 shadow-sm transition hover:-translate-y-0.5 hover:border-primary/40 ${item.accent}`}
                         >
                           {item.title}
                         </button>
