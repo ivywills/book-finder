@@ -2,6 +2,7 @@
 
 import {
   useEffect,
+  useRef,
   useState,
   type Dispatch,
   type FormEvent,
@@ -36,6 +37,7 @@ interface Book {
   image?: string | StaticImageData | null;
   averageRating?: number | null;
   ratingsCount?: number | null;
+  addedAt?: string | null;
 }
 
 interface PromptShortcut {
@@ -91,6 +93,26 @@ const getCoverSrc = (book: Book) => {
 
   return book.image?.src ?? defaultCover.src;
 };
+
+const getAddedAtTime = (book: Book) => {
+  if (!book.addedAt) {
+    return 0;
+  }
+
+  const parsed = Date.parse(book.addedAt);
+  return Number.isNaN(parsed) ? 0 : parsed;
+};
+
+const sortFavoritesByAddedAt = (books: Book[]) =>
+  [...books].sort(
+    (left, right) => getAddedAtTime(right) - getAddedAtTime(left)
+  );
+
+const mergeFavorite = (books: Book[], nextFavorite: Book) =>
+  sortFavoritesByAddedAt([
+    nextFavorite,
+    ...books.filter((favorite) => favorite.isbn !== nextFavorite.isbn),
+  ]);
 
 const getGoogleBooksUrl = (title: string) => {
   const trimmedTitle = title.trim();
@@ -191,7 +213,11 @@ const HomePage = () => {
   const [favoritesView, setFavoritesView] = useState<'shelf' | 'list'>('shelf');
   const [resultsPage, setResultsPage] = useState(1);
   const [favoritesPage, setFavoritesPage] = useState(1);
+  const [pendingFavoriteIsbns, setPendingFavoriteIsbns] = useState<string[]>(
+    []
+  );
   const [isSearchPanelOpen, setIsSearchPanelOpen] = useState(true);
+  const favoritesRequestVersion = useRef(0);
   const isSearchCardCollapsed = !isSearchPanelOpen;
 
   useEffect(() => {
@@ -199,6 +225,8 @@ const HomePage = () => {
       if (!isLoaded) {
         return;
       }
+
+      const requestVersion = ++favoritesRequestVersion.current;
 
       if (!user) {
         setFavorites([]);
@@ -233,12 +261,23 @@ const HomePage = () => {
 
         if (data.userProfile?.favorites?.length) {
           const enrichedFavorites = await enrichBooks(data.userProfile.favorites);
-          setFavorites(enrichedFavorites);
+
+          if (requestVersion !== favoritesRequestVersion.current) {
+            return;
+          }
+
+          setFavorites(sortFavoritesByAddedAt(enrichedFavorites));
         } else {
+          if (requestVersion !== favoritesRequestVersion.current) {
+            return;
+          }
+
           setFavorites([]);
         }
       } finally {
-        setLoadingFavorites(false);
+        if (requestVersion === favoritesRequestVersion.current) {
+          setLoadingFavorites(false);
+        }
       }
     };
 
@@ -265,6 +304,8 @@ const HomePage = () => {
 
   const isFavorite = (book: Book) =>
     favorites.some((favorite) => favorite.isbn === book.isbn);
+  const isFavoritePending = (isbn: string) =>
+    pendingFavoriteIsbns.includes(isbn);
 
   const renderStars = (averageRating: number | null | undefined) => {
     if (averageRating === null || averageRating === undefined) {
@@ -361,7 +402,32 @@ const HomePage = () => {
       return;
     }
 
+    if (isFavoritePending(book.isbn)) {
+      return;
+    }
+
     const alreadyFavorite = isFavorite(book);
+    const previousFavorites = favorites;
+    const optimisticFavorite: Book = {
+      ...book,
+      addedAt: new Date().toISOString(),
+    };
+
+    favoritesRequestVersion.current += 1;
+    setLoadingFavorites(false);
+    setFavoritesPage(1);
+    setPendingFavoriteIsbns((current) =>
+      current.includes(book.isbn) ? current : [...current, book.isbn]
+    );
+    setFavorites((currentFavorites) => {
+      if (alreadyFavorite) {
+        return currentFavorites.filter(
+          (favorite) => favorite.isbn !== book.isbn
+        );
+      }
+
+      return mergeFavorite(currentFavorites, optimisticFavorite);
+    });
 
     try {
       const response = await fetch(`/api/clerk?userId=${user.id}`, {
@@ -376,26 +442,24 @@ const HomePage = () => {
             : { userId: user.id, book },
         }),
       });
+      const data = await response.json().catch(() => null);
 
       if (!response.ok) {
         throw new Error('Failed to update favorites');
       }
 
-      setFavorites((currentFavorites) => {
-        if (alreadyFavorite) {
-          return currentFavorites.filter(
-            (favorite) => favorite.isbn !== book.isbn
-          );
-        }
-
-        if (currentFavorites.some((favorite) => favorite.isbn === book.isbn)) {
-          return currentFavorites;
-        }
-
-        return [book, ...currentFavorites];
-      });
+      if (!alreadyFavorite && data?.favorite) {
+        setFavorites((currentFavorites) =>
+          mergeFavorite(currentFavorites, data.favorite as Book)
+        );
+      }
     } catch (favoriteError) {
+      setFavorites(previousFavorites);
       console.error('Error updating favorites:', favoriteError);
+    } finally {
+      setPendingFavoriteIsbns((current) =>
+        current.filter((isbn) => isbn !== book.isbn)
+      );
     }
   };
 
@@ -457,10 +521,12 @@ const HomePage = () => {
                   <button
                     type="button"
                     onClick={() => toggleFavorite(book)}
-                    className="absolute right-3 top-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/85 text-lg shadow-md transition hover:scale-105"
+                    className="absolute right-3 top-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white/85 text-lg shadow-md transition enabled:hover:scale-105 disabled:cursor-wait disabled:opacity-70"
                     aria-label={
                       isFavorite(book) ? 'Remove from favorites' : 'Save to favorites'
                     }
+                    aria-busy={isFavoritePending(book.isbn)}
+                    disabled={isFavoritePending(book.isbn)}
                   >
                     <FontAwesomeIcon
                       icon={isFavorite(book) ? solidHeart : regularHeart}
@@ -605,10 +671,12 @@ const HomePage = () => {
                   <button
                     type="button"
                     onClick={() => toggleFavorite(book)}
-                    className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-base-300 bg-base-100/90 text-lg shadow-sm transition hover:scale-105"
+                    className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-base-300 bg-base-100/90 text-lg shadow-sm transition enabled:hover:scale-105 disabled:cursor-wait disabled:opacity-70"
                     aria-label={
                       isFavorite(book) ? 'Remove from favorites' : 'Save to favorites'
                     }
+                    aria-busy={isFavoritePending(book.isbn)}
+                    disabled={isFavoritePending(book.isbn)}
                   >
                     <FontAwesomeIcon
                       icon={isFavorite(book) ? solidHeart : regularHeart}

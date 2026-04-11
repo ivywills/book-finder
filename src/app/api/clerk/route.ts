@@ -7,13 +7,22 @@ interface Friend {
   profileImageUrl?: string; 
 }
 
+interface StoredFavorite {
+  name: string;
+  author: string;
+  isbn: string;
+  image?: string | null;
+  averageRating?: number | null;
+  ratingsCount?: number | null;
+  addedAt?: string | null;
+}
+
 interface WebhookEvent {
   type: string;
   data: {
     userId?: string;
     isbn?: string;
-    // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    book?: any;
+    book?: Partial<StoredFavorite> | null;
     friendId?: string;
     friendName?: string;
     progress?: number;
@@ -28,6 +37,75 @@ interface WebhookEvent {
     email?: string;
   };
 }
+
+const isRecord = (value: unknown): value is Record<string, unknown> =>
+  typeof value === 'object' && value !== null;
+
+const getAddedAtTime = (addedAt?: string | null) => {
+  if (!addedAt) {
+    return 0;
+  }
+
+  const parsed = Date.parse(addedAt);
+  return Number.isNaN(parsed) ? 0 : parsed;
+};
+
+const sortFavoritesByAddedAt = (favorites: StoredFavorite[]) =>
+  [...favorites].sort(
+    (left, right) => getAddedAtTime(right.addedAt) - getAddedAtTime(left.addedAt)
+  );
+
+const dedupeFavoritesByIsbn = (favorites: StoredFavorite[]) => {
+  const seen = new Set<string>();
+
+  return favorites.filter((favorite) => {
+    if (seen.has(favorite.isbn)) {
+      return false;
+    }
+
+    seen.add(favorite.isbn);
+    return true;
+  });
+};
+
+const normalizeFavorite = (
+  favorite: unknown,
+  index: number
+): StoredFavorite | null => {
+  if (!isRecord(favorite)) {
+    return null;
+  }
+
+  const isbn =
+    typeof favorite.isbn === 'string' ? favorite.isbn.trim() : '';
+
+  if (!isbn) {
+    return null;
+  }
+
+  const name =
+    typeof favorite.name === 'string' && favorite.name.trim().length > 0
+      ? favorite.name
+      : 'Untitled';
+
+  return {
+    name,
+    author: typeof favorite.author === 'string' ? favorite.author : '',
+    isbn,
+    image: typeof favorite.image === 'string' ? favorite.image : null,
+    averageRating:
+      typeof favorite.averageRating === 'number'
+        ? favorite.averageRating
+        : null,
+    ratingsCount:
+      typeof favorite.ratingsCount === 'number' ? favorite.ratingsCount : null,
+    addedAt:
+      typeof favorite.addedAt === 'string' &&
+      !Number.isNaN(Date.parse(favorite.addedAt))
+        ? favorite.addedAt
+        : new Date((index + 1) * 1000).toISOString(),
+  };
+};
 
 export async function GET(req: NextRequest) {
   const { searchParams } = new URL(req.url);
@@ -157,6 +235,19 @@ export async function GET(req: NextRequest) {
       };
     });
 
+    const favorites = dedupeFavoritesByIsbn(
+      sortFavoritesByAddedAt(
+        (user.favorites || [])
+          .map((favorite: unknown, index: number) =>
+            normalizeFavorite(favorite, index)
+          )
+          .filter(
+            (favorite: StoredFavorite | null): favorite is StoredFavorite =>
+              favorite !== null
+          )
+      )
+    );
+
     const userProfile = {
       id: user.id,
       firstName: user.firstName,
@@ -164,7 +255,7 @@ export async function GET(req: NextRequest) {
       email: user.email,
       imageUrl: user.imageUrl,
       friends: friendsDetails,
-      favorites: user.favorites || [], 
+      favorites,
       currentlyReading: user.currentlyReading || null, 
       completedBooks: user.completedBooks || [], 
     };
@@ -225,20 +316,41 @@ export async function POST(req: NextRequest) {
       }
     } else if (payload.type === 'add.favorite') {
       const { userId, book } = payload.data;
-      await usersCollection.updateOne(
-        { id: userId },
-        { $addToSet: { favorites: book } },
-        { upsert: true }
+      const favorite = normalizeFavorite(
+        {
+          ...book,
+          addedAt: new Date().toISOString(),
+        },
+        0
       );
+
+      if (userId && favorite) {
+        await usersCollection.updateOne(
+          { id: userId },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          { $pull: { favorites: { isbn: favorite.isbn } } as any }
+        );
+
+        await usersCollection.updateOne(
+          { id: userId },
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          { $push: { favorites: favorite } as any },
+          { upsert: true }
+        );
+
+        return NextResponse.json({ favorite }, { status: 200 });
+      }
     } else if (payload.type === 'remove.favorite') {
       const { userId, isbn } = payload.data;
-      if (isbn) {
+      if (userId && isbn) {
         await usersCollection.updateOne(
           { id: userId },
           // eslint-disable-next-line @typescript-eslint/no-explicit-any
           { $pull: { favorites: { isbn } } as any },
           { upsert: true }
         );
+
+        return NextResponse.json({ removedIsbn: isbn }, { status: 200 });
       }
     } else if (payload.type === 'add.currentlyReading') {
       const { userId, book } = payload.data;
